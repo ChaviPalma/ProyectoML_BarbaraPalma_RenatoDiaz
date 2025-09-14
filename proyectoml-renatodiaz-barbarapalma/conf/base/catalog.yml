@@ -24,3 +24,11 @@ anime_dataset_limpio:
     engine: fastparquet
   save_args:
     engine: fastparquet
+
+anime_dataset_paso_episodes:
+  type: pandas.ParquetDataset
+  filepath: data/02_intermediate/anime_dataset_paso_episodes.parquet
+
+anime_dataset_paso_premiered:
+  type: pandas.ParquetDataset
+  filepath: data/02_intermediate/anime_dataset_paso_premiered.parquet
