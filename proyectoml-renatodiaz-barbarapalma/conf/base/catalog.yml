@@ -3,26 +3,32 @@
 # Documentation for this file format can be found in "The Data Catalog"
 # Link: https://docs.kedro.org/en/stable/data/data_catalog.html
 
-anime_dataset_2023:
-  type: pandas.ParquetDataSet
-  filepath: data/01_raw/anime-dataset-2023.parquet
+anime_dataset:
+  type: pandas.ParquetDataset
+  filepath: data/01_raw/anime_dataset_2023.parquet
 
-anime_filtered:
-  type: pandas.ParquetDataSet
-  filepath: data/01_raw/anime-filtered.parquet
+users_detail:
+  type: pandas.ParquetDataset
+  filepath: data/01_raw/users_details_2023.parquet
 
-final_animedataset:
-  type: pandas.ParquetDataSet
-  filepath: data/01_raw/final-animedataset.parquet
+users_score:
+  type: pandas.ParquetDataset
+  filepath: data/01_raw/users_score_2023.parquet
 
-user_filtered:
-  type: pandas.ParquetDataSet
-  filepath: data/01_raw/user-filtered.parquet
+# Intermediate data sets
 
-user_details:
-  type: pandas.ParquetDataSet
-  filepath: data/01_raw/users-details-2023.parquet
+anime_dataset_limpio:
+  type: pandas.ParquetDataset
+  filepath: data/02_intermediate/anime_dataset_limpio.parquet
+  load_args:
+    engine: fastparquet
+  save_args:
+    engine: fastparquet
 
-user_score:
-  type: pandas.ParquetDataSet
-  filepath: data/01_raw/users-score-2023.parquet
+anime_dataset_paso_episodes:
+  type: pandas.ParquetDataset
+  filepath: data/02_intermediate/anime_dataset_paso_episodes.parquet
+
+anime_dataset_paso_premiered:
+  type: pandas.ParquetDataset
+  filepath: data/02_intermediate/anime_dataset_paso_premiered.parquet
