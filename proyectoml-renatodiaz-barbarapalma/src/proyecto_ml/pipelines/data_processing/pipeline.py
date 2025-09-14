@@ -1,8 +1,8 @@
 from kedro.pipeline import Pipeline, Node
-from .nodes import limpiar_anime_dataset, limpiar_convertir_episodes, convertir_premiered_booleano   # o la función que uses
+from .nodes import limpiar_anime_dataset, limpiar_convertir_episodes   # o la función que uses
 
 
-def create_pipeline():
+def create_pipeline(**kwargs):
     return Pipeline(
         [
             Node(
@@ -14,15 +14,9 @@ def create_pipeline():
             Node(
                 func=limpiar_convertir_episodes,
                 inputs="anime_dataset_limpio",
-                outputs="anime_dataset_paso_episodes",
+                outputs="anime_dataset_final",
                 name="limpiar_convertir_episodes_node"
             ),
-            Node(
-                func=convertir_premiered_booleano,
-                inputs="anime_dataset_paso_episodes",
-                outputs="anime_dataset_paso_premiered",
-                name="convertir_premiered_booleano_node"
-            )
         ]
     )
     
