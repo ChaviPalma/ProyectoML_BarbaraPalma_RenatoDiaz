@@ -4,22 +4,22 @@
 # Link: https://docs.kedro.org/en/stable/data/data_catalog.html
 
 anime_dataset:
-  type: pandas.ParquetDataSet
+  type: pandas.ParquetDataset
   filepath: data/01_raw/anime_dataset_2023.parquet
 
 users_detail:
-  type: pandas.ParquetDataSet
+  type: pandas.ParquetDataset
   filepath: data/01_raw/users_details_2023.parquet
 
 users_score:
-  type: pandas.ParquetDataSet
+  type: pandas.ParquetDataset
   filepath: data/01_raw/users_score_2023.parquet
 
 # Intermediate data sets
 
 anime_dataset_limpio:
   type: pandas.ParquetDataset
-  filepath: data/01_raw/anime_dataset_limpio.parquet
+  filepath: data/02_intermediate/anime_dataset_limpio.parquet
   load_args:
     engine: fastparquet
   save_args:
