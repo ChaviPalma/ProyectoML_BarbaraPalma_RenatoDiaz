@@ -77,3 +77,61 @@ def inspeccionar_users_score(users_score: pd.DataFrame) -> pd.DataFrame:
     
     return users_score
 
+##Union de datasets
+
+
+#Union de datastets users_score y users_detail
+def union_dataset_score_detail(users_score: pd.DataFrame, users_detail: pd.DataFrame) -> pd.DataFrame:
+    final_users = pd.merge(users_detail, users_score, left_on='Mal ID', right_on='user_id', how='inner')
+    #Eliminacion de columnas innecesarias
+    columns_a_eliminar = ['Mal ID', 'Username_y']
+    final_users = final_users.drop(columns=columns_a_eliminar)
+    return final_users
+
+
+def union_dataset_anime_users(anime_dataset: pd.DataFrame, final_users: pd.DataFrame) -> pd.DataFrame:
+    final_anime_dataset = pd.merge(anime_dataset, final_users, left_on='anime_id', right_on='anime_id', how='inner')
+
+    # Eliminar la columna 'Name' ya que 'Anime Title' es similar
+    final_anime_dataset = final_anime_dataset.drop(columns=['Name'])
+
+    # Reordenar las columnas para poner las de usuario primero
+    user_columns = [col for col in final_users.columns if col != 'anime_id']
+    # Identificar las columnas de anime (excluyendo 'anime_id' y 'Name' que eliminamos)
+    anime_columns = [col for col in anime_dataset.columns if col != 'anime_id' and col != 'Name']
+
+    # Crear la nueva lista de orden de columnas: columnas de usuario + 'anime_id' + columnas de anime
+    new_column_order = user_columns + ['anime_id'] + anime_columns
+
+    # Aplicar el nuevo orden de columnas al DataFrame
+    final_anime_dataset = final_anime_dataset[new_column_order]
+
+    nuevos_nombres_columnas = {
+    'Username_x': 'NombreUsuario',
+    'Gender': 'GeneroUsuario',
+    'user_id': 'IDUsuario',
+    'Anime Title': 'TituloAnime',
+    'rating': 'Puntuacion',
+    'anime_id': 'IDAnime',
+    'Score': 'PuntuacionAnime',
+    'Genres': 'GenerosAnime',
+    'Synopsis': 'Sinopsis',
+    'Type': 'Tipo',
+    'Episodes': 'Episodios',
+    'Aired': 'FechaEmision',
+    'Premiered': 'FechaEstreno',
+    'Status': 'Estado',
+    'Source': 'Fuente',
+    'Duration': 'Duración',
+    'Rating': 'Clasificación',
+    'Rank': 'Ranking',
+    'Popularity': 'Popularidad',
+    'Favorites': 'Favoritos',
+    'Scored By': 'PuntuadoPor',
+    'Members': 'CantidadDeMiembros'
+    }
+
+    # Renombrar las columnas
+    final_anime_dataset = final_anime_dataset.rename(columns=nuevos_nombres_columnas)
+
+    return final_anime_dataset

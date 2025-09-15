@@ -25,7 +25,7 @@ anime_dataset_limpio:
     engine: fastparquet
   save_args:
     engine: fastparquet
-  
+
 anime_dataset_episodes:
   type: pandas.ParquetDataset
   filepath: data/02_intermediate/anime_dataset_episodes.parquet
@@ -70,10 +70,12 @@ users_score_inspeccionado:
   save_args:
     engine: fastparquet
 
-datasets_verificados_unidos:
+#Union datasets
+final_anime_dataset:
   type: pandas.ParquetDataset
-  filepath: data/02_intermediate/datasets_verificados_unidos.parquet
+  filepath: data/03_primary/final_anime_dataset.parquet
   load_args:
-    engine: fastparquet
+    engine: pyarrow # gzip funciona mejor con pyarrow
   save_args:
-    engine: fastparquet
+    engine: pyarrow
+    compression: gzip
