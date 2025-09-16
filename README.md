@@ -1,5 +1,10 @@
 # PROYECTO DE MACHINE LEARNING PARA UN SISTEMA DE RECOMENDACIÓN DE ANIME
 
+## Integrantes 
+
+1. Barbara Palma
+2. Renato Díaz
+
 ## Descripción 
 
 Este proyecto busca el crear un sistema de recomendación de animes para usuarios. Para ello se utilizarón dataset de kaggle sobre anime. El trabajo incluye kedro para la automatización de los datos.
@@ -9,6 +14,12 @@ Se trabajó en tres fases principales:
 2. **Data Understanding**: Exploración y análisis del dataset.
 3. **Data Preparation**: Limpieza, transformación y preparación de los datos para el sistema de recomendación, automatizado con Kedro.
 
+
+## Link kaggle 
+https://www.kaggle.com/datasets/dbdmobile/myanimelist-dataset/code?datasetId=3384322&sortBy=voteCount
+
+## Link video Evaluación 1
+https://drive.google.com/drive/u/1/folders/1skjSbRVAH0YZRHZBv82O1jU3wuTuoH6V
 
 ## Requisitos
 - **Python** 3.11
