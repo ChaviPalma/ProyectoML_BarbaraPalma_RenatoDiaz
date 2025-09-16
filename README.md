@@ -19,7 +19,8 @@ Se trabajó en tres fases principales:
 https://www.kaggle.com/datasets/dbdmobile/myanimelist-dataset/code?datasetId=3384322&sortBy=voteCount
 
 ## Link video Evaluación 1
-https://drive.google.com/drive/u/1/folders/1skjSbRVAH0YZRHZBv82O1jU3wuTuoH6V
+
+https://drive.google.com/drive/folders/1skjSbRVAH0YZRHZBv82O1jU3wuTuoH6V?usp=sharing
 
 ## Requisitos
 - **Python** 3.11
