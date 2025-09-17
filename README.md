@@ -36,8 +36,8 @@ https://drive.google.com/drive/folders/1skjSbRVAH0YZRHZBv82O1jU3wuTuoH6V?usp=sha
 
 1. Clonar el repositorio:
 ```bash
-git clone https://github.com/usuario/proyecto_recomendacion.git
-cd proyecto_recomendacion
+https://github.com/ChaviPalma/ProyectoML_BarbaraPalma_RenatoDiaz
+cd proyectoml-renatodiaz-barbarapalma
 ```
 2. Crear entorno virtual:
 ```bash
