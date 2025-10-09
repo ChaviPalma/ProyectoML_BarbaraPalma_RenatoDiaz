@@ -1,0 +1,10 @@
+
+
+services:
+  kedro_app:
+    build: .
+    container_name: kedro_project
+    command: kedro run
+    volumes:
+      - .:/home/kedro_docker
+    working_dir: /home/kedro_docker
