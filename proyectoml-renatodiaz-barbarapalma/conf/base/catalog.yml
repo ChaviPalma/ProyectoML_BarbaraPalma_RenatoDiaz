@@ -1,3 +1,6 @@
+# ===============================
+# 📦 RAW DATASETS (entrada)
+# ===============================
 anime_dataset:
   type: pandas.ParquetDataset
   filepath: data/01_raw/anime_dataset_2023.parquet
@@ -10,9 +13,11 @@ users_score:
   type: pandas.ParquetDataset
   filepath: data/01_raw/users_score_2023.parquet
 
-# Intermediate data sets
+# ===============================
+# ⚙️ INTERMEDIATE DATASETS
+# ===============================
 
-# anime_dataset
+# --- Anime dataset cleaning steps ---
 anime_dataset_limpio:
   type: pandas.ParquetDataset
   filepath: data/02_intermediate/anime_dataset_limpio.parquet
@@ -37,8 +42,16 @@ anime_dataset_rank:
   save_args:
     engine: fastparquet
 
-##User_details
+# --- 🔹 Nuevo dataset: features básicas del anime ---
+anime_dataset_features:
+  type: pandas.ParquetDataset
+  filepath: data/02_intermediate/anime_dataset_features.parquet
+  load_args:
+    engine: fastparquet
+  save_args:
+    engine: fastparquet
 
+# --- Users datasets cleaning ---
 users_detail_inspeccionado:
   type: pandas.ParquetDataset
   filepath: data/02_intermediate/users_detail_inspeccionado.parquet
@@ -55,8 +68,6 @@ users_detail_limpio:
   save_args:
     engine: fastparquet
 
-##users_score
-
 users_score_inspeccionado:
   type: pandas.ParquetDataset
   filepath: data/02_intermediate/users_score_inspeccionado.parquet
@@ -65,12 +76,22 @@ users_score_inspeccionado:
   save_args:
     engine: fastparquet
 
-#Union datasets
+# --- Unión intermedia de usuarios ---
+final_users:
+  type: pandas.ParquetDataset
+  filepath: data/02_intermediate/final_users.parquet
+  load_args:
+    engine: fastparquet
+  save_args:
+    engine: fastparquet
+
+# ===============================
+# 📊 PRIMARY DATASETS (salida final)
+# ===============================
 final_anime_dataset:
   type: pandas.ParquetDataset
   filepath: data/03_primary/final_anime_dataset.parquet
   load_args:
-    engine: pyarrow
+    engine: fastparquet
   save_args:
-    engine: pyarrow
-    compression: gzip
+    engine: fastparquet

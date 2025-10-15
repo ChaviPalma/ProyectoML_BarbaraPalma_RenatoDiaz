@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 ##Anime_dataset
 
@@ -88,50 +89,79 @@ def union_dataset_score_detail(users_score: pd.DataFrame, users_detail: pd.DataF
     final_users = final_users.drop(columns=columns_a_eliminar)
     return final_users
 
+# === CREA LAS FEATURES BÁSICAS PRIMERO ===
+def create_basic_anime_features(df: pd.DataFrame) -> pd.DataFrame:
+    anime_features_df = df.copy()
 
+    # --- Feature 1: Tipo ---
+    if 'Type' in anime_features_df.columns:
+        if not pd.api.types.is_object_dtype(anime_features_df['Type']):
+            anime_features_df['Type'] = anime_features_df['Type'].astype(str)
+        anime_features_df = pd.get_dummies(anime_features_df, columns=['Type'], prefix='type', dummy_na=False)
+
+    # --- Feature 2: Duración (episodios) ---
+    if 'Episodes' in anime_features_df.columns:
+        anime_features_df['Episodes'] = pd.to_numeric(anime_features_df['Episodes'], errors='coerce').fillna(0)
+        anime_features_df['is_movie'] = (anime_features_df['Episodes'] == 1).astype(int)
+        anime_features_df['is_long_series'] = (anime_features_df['Episodes'] > 26).astype(int)
+
+    # --- Feature 3: Popularidad ---
+    if 'Members' in anime_features_df.columns:
+        anime_features_df['Members'] = pd.to_numeric(anime_features_df['Members'], errors='coerce').fillna(0)
+        threshold = anime_features_df['Members'].quantile(0.75)
+        anime_features_df['is_popular'] = (anime_features_df['Members'] >= threshold).astype(int)
+
+    # --- Feature 4: Puntuación ---
+    if 'Score' in anime_features_df.columns:
+        anime_features_df['Score'] = pd.to_numeric(anime_features_df['Score'], errors='coerce').fillna(0)
+        threshold = anime_features_df['Score'].quantile(0.75)
+        anime_features_df['is_highly_rated'] = (anime_features_df['Score'] >= threshold).astype(int)
+
+    return anime_features_df
+
+
+# === AHORA SE MODIFICA LA UNIÓN ===
 def union_dataset_anime_users(anime_dataset: pd.DataFrame, final_users: pd.DataFrame) -> pd.DataFrame:
+    # 🟢 APLICAR LAS FEATURES AQUÍ ANTES DE HACER EL MERGE
+    anime_dataset = create_basic_anime_features(anime_dataset)
+
     final_anime_dataset = pd.merge(anime_dataset, final_users, left_on='anime_id', right_on='anime_id', how='inner')
 
     # Eliminar la columna 'Name' ya que 'Anime Title' es similar
-    final_anime_dataset = final_anime_dataset.drop(columns=['Name'])
+    if 'Name' in final_anime_dataset.columns:
+        final_anime_dataset = final_anime_dataset.drop(columns=['Name'])
 
-    # Reordenar las columnas para poner las de usuario primero
+    # Reordenar columnas: primero las de usuario
     user_columns = [col for col in final_users.columns if col != 'anime_id']
-    # Identificar las columnas de anime (excluyendo 'anime_id' y 'Name' que eliminamos)
-    anime_columns = [col for col in anime_dataset.columns if col != 'anime_id' and col != 'Name']
+    anime_columns = [col for col in anime_dataset.columns if col not in ['anime_id', 'Name']]
 
-    # Crear la nueva lista de orden de columnas: columnas de usuario + 'anime_id' + columnas de anime
     new_column_order = user_columns + ['anime_id'] + anime_columns
-
-    # Aplicar el nuevo orden de columnas al DataFrame
     final_anime_dataset = final_anime_dataset[new_column_order]
 
     nuevos_nombres_columnas = {
-    'Username_x': 'NombreUsuario',
-    'Gender': 'GeneroUsuario',
-    'user_id': 'IDUsuario',
-    'Anime Title': 'TituloAnime',
-    'rating': 'Puntuacion',
-    'anime_id': 'IDAnime',
-    'Score': 'PuntuacionAnime',
-    'Genres': 'GenerosAnime',
-    'Synopsis': 'Sinopsis',
-    'Type': 'Tipo',
-    'Episodes': 'Episodios',
-    'Aired': 'FechaEmision',
-    'Premiered': 'FechaEstreno',
-    'Status': 'Estado',
-    'Source': 'Fuente',
-    'Duration': 'Duración',
-    'Rating': 'Clasificación',
-    'Rank': 'Ranking',
-    'Popularity': 'Popularidad',
-    'Favorites': 'Favoritos',
-    'Scored By': 'PuntuadoPor',
-    'Members': 'CantidadDeMiembros'
+        'Username_x': 'NombreUsuario',
+        'Gender': 'GeneroUsuario',
+        'user_id': 'IDUsuario',
+        'Anime Title': 'TituloAnime',
+        'rating': 'Puntuacion',
+        'anime_id': 'IDAnime',
+        'Score': 'PuntuacionAnime',
+        'Genres': 'GenerosAnime',
+        'Synopsis': 'Sinopsis',
+        'Type': 'Tipo',
+        'Episodes': 'Episodios',
+        'Aired': 'FechaEmision',
+        'Premiered': 'FechaEstreno',
+        'Status': 'Estado',
+        'Source': 'Fuente',
+        'Duration': 'Duración',
+        'Rating': 'Clasificación',
+        'Rank': 'Ranking',
+        'Popularity': 'Popularidad',
+        'Favorites': 'Favoritos',
+        'Scored By': 'PuntuadoPor',
+        'Members': 'CantidadDeMiembros'
     }
 
-    # Renombrar las columnas
     final_anime_dataset = final_anime_dataset.rename(columns=nuevos_nombres_columnas)
-
     return final_anime_dataset
