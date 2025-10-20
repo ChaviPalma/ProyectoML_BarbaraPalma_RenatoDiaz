@@ -22,6 +22,7 @@ kedro>=0.18.0
 kedro[jupyter]~=1.0.0
 kedro-datasets[pandas-csvdataset, pandas-exceldataset, pandas-parquetdataset, spark-sparkdataset, plotly-plotlydataset, plotly-jsondataset, matplotlib-matplotlibwriter]>=3.0
 kedro-viz>=6.7.0
+kedro-dvc>=1.0.0
 
 # Airflow
 apache-airflow>=2.8.0
