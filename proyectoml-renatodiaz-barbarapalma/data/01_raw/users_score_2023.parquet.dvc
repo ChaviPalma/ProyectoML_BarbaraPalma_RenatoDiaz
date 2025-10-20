@@ -1,0 +1,5 @@
+outs:
+- md5: 5354f0e304df1cf94324cfddf60882a2
+  size: 166620228
+  hash: md5
+  path: users_score_2023.parquet
