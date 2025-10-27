@@ -11,10 +11,7 @@ conf/**/*credentials*
 data/**
 !data/**/
 !.gitkeep
-# mantener datasets de ejemplo
-!data/01_raw/anime_dataset_2023.parquet
-!data/01_raw/users_details_2023.parquet
-!data/01_raw/users_score_2023.parquet
+
 # permitir metafiles DVC dentro de data
 !data/**/*.dvc
 # permitir cualquier .dvc en el repo
