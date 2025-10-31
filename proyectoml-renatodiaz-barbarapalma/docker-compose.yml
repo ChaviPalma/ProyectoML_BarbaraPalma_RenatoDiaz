@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.kedro
-    container_name: proyecto-barbarapalma-renatodiaz-kedro-prod
+    container_name: kedro-prod
     command: kedro run
     environment:
       - KEDRO_HOME=/app
@@ -17,9 +17,7 @@ services:
       - ./sessions:/app/sessions
       - ./src:/app/src
     networks:
-      - proyecto-barbarapalma-renatodiaz-network
-    profiles:
-      - production
+      - network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "kedro", "info"]
@@ -31,7 +29,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.kedro
-    container_name: proyecto-barbarapalma-renatodiaz-kedro-scheduler
+    container_name: kedro-scheduler
     command: |
       sh -c "
       echo '🚀 Iniciando scheduler de Kedro...'
@@ -57,9 +55,7 @@ services:
       - ./sessions:/app/sessions
       - ./src:/app/src
     networks:
-      - proyecto-barbarapalma-renatodiaz-network
-    profiles:
-      - production
+      - network
     restart: unless-stopped
     depends_on:
       - kedro-prod
@@ -68,8 +64,8 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.jupyter
-    image: proyecto-barbarapalma-renatodiaz-jupyter:latest
-    container_name: proyecto-barbarapalma-renatodiaz-jupyter
+    image: jupyter:latest
+    container_name: jupyter
     environment:
       - KEDRO_HOME=/app
       - KEDRO_CONFIG_FILE=conf/base/parameters.yml
@@ -84,16 +80,14 @@ services:
     ports:
       - "8888:8888"
     networks:
-      - proyecto-barbarapalma-renatodiaz-network
-    profiles:
-      - development
+      - network
     restart: unless-stopped
 
   kedro-viz:
     build:
       context: .
       dockerfile: docker/Dockerfile.kedro
-    container_name: proyecto-barbarapalma-renatodiaz-kedro-viz
+    container_name: kedro-viz
     command: ["kedro", "viz", "run", "--host", "0.0.0.0", "--port", "4141"]
     environment:
       - KEDRO_HOME=/app
@@ -108,10 +102,7 @@ services:
     ports:
       - "4141:4141"
     networks:
-      - proyecto-barbarapalma-renatodiaz-network
-    profiles:
-      - development
-      - production
+      - network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4141"]
@@ -121,7 +112,7 @@ services:
 
   postgres:
     image: postgres:15-alpine
-    container_name: proyecto-barbarapalma-renatodiaz-postgres
+    container_name: postgres
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-proyecto-barbarapalma-renatodiaz}
       - POSTGRES_USER=${POSTGRES_USER:-kedro}
@@ -132,10 +123,8 @@ services:
     ports:
       - "5433:5432"
     networks:
-      - proyecto-barbarapalma-renatodiaz-network
-    profiles:
-      - database
-      - production
+      - network
+
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kedro} -d ${POSTGRES_DB:-proyecto-barbarapalma-renatodiaz}"]
@@ -145,30 +134,26 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: proyecto-barbarapalma-renatodiaz-redis
+    container_name: redis
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
     ports:
       - "6379:6379"
     networks:
-      - proyecto-barbarapalma-renatodiaz-network
-    profiles:
-      - cache
+      - network
     restart: unless-stopped
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: proyecto-barbarapalma-renatodiaz-prometheus
+    container_name: prometheus
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     ports:
       - "9090:9090"
     networks:
-      - proyecto-barbarapalma-renatodiaz-network
-    profiles:
-      - monitoring
+      - network
     restart: unless-stopped
 
 volumes:
@@ -180,5 +165,5 @@ volumes:
     driver: local
 
 networks:
-  proyecto-barbarapalma-renatodiaz-network:
+  network:
     driver: bridge

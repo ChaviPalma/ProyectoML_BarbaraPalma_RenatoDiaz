@@ -1,3 +1,11 @@
-data_sampling:
-  sample_fraction: 0.6 # Conservamos el 60% de los datos
-  random_seed: 42
+parametros_regresion:
+  test_size: 0.2
+  random_state: 42
+  feature: ["total_episodios", "popularidad", "favoritos"]
+  target: "puntuacion"
+  n_iter: 5
+  cv: 5
+
+parametros_clasificacion:
+  test_size: 0.2
+  random_state: 42

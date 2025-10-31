@@ -2,8 +2,8 @@
 FROM python:3.11-slim
 
 # Metadatos
-LABEL maintainer="spaceflights-team"
-LABEL description="Kedro ML Pipeline Service"
+LABEL maintainer="proyecto_renato_barbara"
+LABEL description="ML pipeline Environment for Kedro"
 
 # Variables de entorno
 ENV PYTHONUNBUFFERED=1

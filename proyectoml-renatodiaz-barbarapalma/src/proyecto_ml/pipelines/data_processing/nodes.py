@@ -1,167 +1,146 @@
 import pandas as pd
 import numpy as np
+import gc
+import re
 
-##Anime_dataset
+def procesar_anime_filtered(anime_filtered: pd.DataFrame) -> pd.DataFrame:
+    """
+    Procesa el DataFrame 'anime_filtered_filtered':
+      - Renombra columnas.
+      - Elimina géneros específicos.
+      - Convierte la duración a minutos.
+      - Elimina columnas innecesarias.
+    Retorna el DataFrame procesado.
+    """
 
-##Limpia las tablas innecesarias
-
-def limpiar_anime_dataset(anime_dataset: pd.DataFrame) -> pd.DataFrame:
-    # columnas que no necesitas
-    columns_to_drop = [
-        'English name', 'Other name',
-        'Producers', 'Licensors',
-        'Studios', 'Image URL'
-    ]
-    
-    # eliminamos columnas
-    anime_dataset = anime_dataset.drop(columns=columns_to_drop, errors="ignore")
-    
-    return anime_dataset
-
-#Cambiamos los datos UNKNOWN dentro de episodios a 0 y cambiamos el tipo a numerico
-def limpiar_convertir_episodes(anime_dataset: pd.DataFrame) -> pd.DataFrame:
-    # Reemplazar 'UNKNOWN' por 0
-    anime_dataset['Episodes'] = anime_dataset['Episodes'].replace('UNKNOWN', 0)
-    # Convertir a numérico, coerción de errores, rellenar NaN con 0 antes de convertir a int
-    anime_dataset['Episodes'] = pd.to_numeric(anime_dataset['Episodes'], errors='coerce').fillna(0).astype(int)
-    
-    return anime_dataset
-
-#Modificación de la columna rank, se cambiaron los datos UNKNOWN por 0 y se cambio el tipo de category a int para una posible regresión
-def limpiar_convertir_rank(anime_dataset: pd.DataFrame) -> pd.DataFrame:
-    # Reemplazar 'UNKNOWN' por 0
-    anime_dataset['Rank'] = anime_dataset['Rank'].replace('UNKNOWN', 0)
-    # Convertir a numérico, coerción de errores, rellenar NaN con 0 antes de convertir a int
-    anime_dataset['Rank'] = pd.to_numeric(anime_dataset['Rank'], errors='coerce').fillna(0).astype(int)
-    
-    return anime_dataset
-
-##users_detail
-
-def inspeccionar_users_detail(users_detail: pd.DataFrame) -> pd.DataFrame:
-    """Imprime el head y la info del dataset."""
-    print("=== Head del dataset ===")
-    print(users_detail.head())
-    print("\n=== Información del dataset ===")
-    print(users_detail.info())
-    return users_detail
-
-
-def limpiar_users_detail(users_detail: pd.DataFrame) -> pd.DataFrame:
-    """Elimina columnas innecesarias de users_detail."""
-    columns_a_eliminar = [
-        'Location', 'Joined', 'Birthday', 'Days Watched', 'Total Entries',
-        'On Hold', 'Dropped', 'Watching', 'Completed', 'Plan to Watch',
-        'Rewatched', 'Episodes Watched', 'Mean Score'
-    ]
-    users_detail = users_detail.drop(columns=[col for col in columns_a_eliminar if col in users_detail.columns])
-    
-    print("=== Columnas restantes ===")
-    print(users_detail.columns)
-    
-    return users_detail
-
-
-##users_score
-
-def inspeccionar_users_score(users_score: pd.DataFrame) -> pd.DataFrame:
-   
-    print("=== Información del dataset ===")
-    print(users_score.info())
-    
-    print("\n=== Conteo de ratings ===")
-    rating_counts = users_score['rating'].value_counts()
-    print(rating_counts)
-    
-    print("\n=== Valores nulos por columna ===")
-    print(users_score.isnull().sum())
-    
-    return users_score
-
-##Union de datasets
-
-
-#Union de datastets users_score y users_detail
-def union_dataset_score_detail(users_score: pd.DataFrame, users_detail: pd.DataFrame) -> pd.DataFrame:
-    final_users = pd.merge(users_detail, users_score, left_on='Mal ID', right_on='user_id', how='inner')
-    #Eliminacion de columnas innecesarias
-    columns_a_eliminar = ['Mal ID', 'Username_y']
-    final_users = final_users.drop(columns=columns_a_eliminar)
-    return final_users
-
-# === CREA LAS FEATURES BÁSICAS PRIMERO ===
-def create_basic_anime_features(df: pd.DataFrame) -> pd.DataFrame:
-    anime_features_df = df.copy()
-
-    # --- Feature 1: Tipo ---
-    if 'Type' in anime_features_df.columns:
-        if not pd.api.types.is_object_dtype(anime_features_df['Type']):
-            anime_features_df['Type'] = anime_features_df['Type'].astype(str)
-        anime_features_df = pd.get_dummies(anime_features_df, columns=['Type'], prefix='type', dummy_na=False)
-
-    # --- Feature 2: Duración (episodios) ---
-    if 'Episodes' in anime_features_df.columns:
-        anime_features_df['Episodes'] = pd.to_numeric(anime_features_df['Episodes'], errors='coerce').fillna(0)
-        anime_features_df['is_movie'] = (anime_features_df['Episodes'] == 1).astype(int)
-        anime_features_df['is_long_series'] = (anime_features_df['Episodes'] > 26).astype(int)
-
-    # --- Feature 3: Popularidad ---
-    if 'Members' in anime_features_df.columns:
-        anime_features_df['Members'] = pd.to_numeric(anime_features_df['Members'], errors='coerce').fillna(0)
-        threshold = anime_features_df['Members'].quantile(0.75)
-        anime_features_df['is_popular'] = (anime_features_df['Members'] >= threshold).astype(int)
-
-    # --- Feature 4: Puntuación ---
-    if 'Score' in anime_features_df.columns:
-        anime_features_df['Score'] = pd.to_numeric(anime_features_df['Score'], errors='coerce').fillna(0)
-        threshold = anime_features_df['Score'].quantile(0.75)
-        anime_features_df['is_highly_rated'] = (anime_features_df['Score'] >= threshold).astype(int)
-
-    return anime_features_df
-
-
-# === AHORA SE MODIFICA LA UNIÓN ===
-def union_dataset_anime_users(anime_dataset: pd.DataFrame, final_users: pd.DataFrame) -> pd.DataFrame:
-    # 🟢 APLICAR LAS FEATURES AQUÍ ANTES DE HACER EL MERGE
-    anime_dataset = create_basic_anime_features(anime_dataset)
-
-    final_anime_dataset = pd.merge(anime_dataset, final_users, left_on='anime_id', right_on='anime_id', how='inner')
-
-    # Eliminar la columna 'Name' ya que 'Anime Title' es similar
-    if 'Name' in final_anime_dataset.columns:
-        final_anime_dataset = final_anime_dataset.drop(columns=['Name'])
-
-    # Reordenar columnas: primero las de usuario
-    user_columns = [col for col in final_users.columns if col != 'anime_id']
-    anime_columns = [col for col in anime_dataset.columns if col not in ['anime_id', 'Name']]
-
-    new_column_order = user_columns + ['anime_id'] + anime_columns
-    final_anime_dataset = final_anime_dataset[new_column_order]
-
-    nuevos_nombres_columnas = {
-        'Username_x': 'NombreUsuario',
-        'Gender': 'GeneroUsuario',
-        'user_id': 'IDUsuario',
-        'Anime Title': 'TituloAnime',
-        'rating': 'Puntuacion',
-        'anime_id': 'IDAnime',
-        'Score': 'PuntuacionAnime',
-        'Genres': 'GenerosAnime',
-        'Synopsis': 'Sinopsis',
-        'Type': 'Tipo',
-        'Episodes': 'Episodios',
-        'Aired': 'FechaEmision',
-        'Premiered': 'FechaEstreno',
-        'Status': 'Estado',
-        'Source': 'Fuente',
-        'Duration': 'Duración',
-        'Rating': 'Clasificación',
-        'Rank': 'Ranking',
-        'Popularity': 'Popularidad',
-        'Favorites': 'Favoritos',
-        'Scored By': 'PuntuadoPor',
-        'Members': 'CantidadDeMiembros'
+    # --- Mapeo de columnas ---
+    anime_filtered_column_mapping = {
+        'anime_id': 'id_anime',
+        'Name': 'nombre_anime',
+        'Score': 'puntuacion',
+        'Genres': 'generos_anime',
+        'English name': 'Nombre_Ingles',
+        'Japanese name': 'Nombre_Japones',
+        'sypnopsis': 'sinopsis',
+        'Type': 'tipo_anime_filtered',
+        'Episodes': 'total_episodios',
+        'Aired': 'emitido',
+        'Premiered': 'fecha_estreno',
+        'Producers': 'Productores',
+        'Licensors': 'licenciantes',
+        'Studios': 'estudios',
+        'Source': 'fuente',
+        'Duration': 'duracion',
+        'Rating': 'clasificacion',
+        'Ranked': 'posicion_anime',
+        'Popularity': 'popularidad',
+        'Members': 'miembros',
+        'Favorites': 'favoritos',
+        'Watching': 'viendo',
+        'Completed': 'completado',
+        'On-Hold': 'en_espera',
+        'Dropped': 'abandonado'
     }
 
-    final_anime_dataset = final_anime_dataset.rename(columns=nuevos_nombres_columnas)
+    anime_filtered= anime_filtered.rename(columns=anime_filtered_column_mapping)
+    print("\n Columnas del dataframe 'anime_filtered' después de renombrar:")
+    print(anime_filtered.columns)
+
+    # --- Filtro de géneros no deseados ---
+    genres_to_remove = ['Yuri', 'Yaoi', 'Harem', 'Hentai', 'Ecchi', 'Unknown']
+    mask_to_remove = anime_filtered['generos_anime'].apply(
+        lambda x: isinstance(x, str) and any(genre in x for genre in genres_to_remove)
+    )
+
+    anime_filtered = anime_filtered[~mask_to_remove].copy()
+
+    print(f"\n Dimensiones después de eliminar géneros específicos: {anime_filtered.shape}")
+
+    # --- Función interna: convertir duración a minutos ---
+    def convert_duration_to_minutes(duration_str):
+        """
+        Convierte una cadena de duración a minutos.
+        Maneja formatos como 'X min. per ep.', 'X hr. Y min.', 'X min.', 'X hr.', 'X sec.'.
+        Retorna None para formatos no reconocidos o nulos.
+        """
+        if not isinstance(duration_str, str) or duration_str.lower() == 'unknown':
+            return None
+
+        duration_str = duration_str.lower()
+
+        # "X min. per ep."
+        match_min_per_ep = re.search(r'(\d+)\s*min\.\s*per\s*ep\.', duration_str)
+        if match_min_per_ep:
+            try:
+                return int(match_min_per_ep.group(1))
+            except ValueError:
+                return None
+
+        # "X hr. Y min." / "X hr." / "Y min." / "X sec."
+        match_hr = re.search(r'(\d+)\s*hr\.', duration_str)
+        match_min = re.search(r'(\d+)\s*min\.', duration_str)
+        match_sec = re.search(r'(\d+)\s*sec\.', duration_str)
+
+        hours = int(match_hr.group(1)) if match_hr else 0
+        minutes = int(match_min.group(1)) if match_min else 0
+        seconds = int(match_sec.group(1)) if match_sec else 0
+
+        if hours > 0 or minutes > 0 or seconds > 0:
+            return hours * 60 + minutes + round(seconds / 60, 2)
+
+        return None
+
+    # --- Aplicar conversión de duración ---
+    anime_filtered['duracion_minutos'] = anime_filtered['duracion'].apply(convert_duration_to_minutes)
+    print(" Columna 'duracion_minutos' creada y convertida a formato numérico.")
+
+    # --- Eliminar columnas no necesarias ---
+    columns_to_drop = ['Nombre_Ingles', 'Nombre_Japones', 'Productores', 'clasificacion', 'licenciantes', ]
+    anime_filtered = anime_filtered.drop(columns=columns_to_drop, errors='ignore')
+
+    # --- Mostrar resumen ---
+    print("\n Resumen de 'duracion_minutos':")
+
+
+    gc.collect()
+
+    anime_filtered['total_episodios'] = pd.to_numeric(anime_filtered['total_episodios'], errors='coerce')
+    # Eliminar filas donde 'duracion_minutos' es nulo
+    anime_before_drop = anime_filtered.shape[0]
+    anime_filtered = anime_filtered.dropna(subset=['duracion_minutos'])
+
+    print(f"Dimensiones del dataframe 'anime' antes de eliminar nulos en 'duracion_minutos': ({anime_before_drop}, {anime_filtered.shape[1]})")
+    print(f"Dimensiones del dataframe 'anime' después de eliminar nulos en 'duracion_minutos': {anime_filtered.shape}")
+    return anime_filtered
+
+
+def procesar_users_score(users_score: pd.DataFrame) -> pd.DataFrame:
+    """
+    Procesa el DataFrame 'users_score':
+      - Renombra columnas.
+      - Elimina columnas innecesarias.  
+    Retorna el DataFrame procesado.
+    """
+    users_score_column_mapping = {
+    'user_id': 'id_usuario',
+    'Username': 'nombre_usuario',
+    'anime_id': 'id_anime',
+    'Anime Title': 'titulo_anime',
+    'rating': 'puntuacion_usuario'
+    }   
+
+    
+    users_score = users_score.rename(columns=users_score_column_mapping)
+    return users_score
+
+def union_datasets(anime_filtered: pd.DataFrame, users_score: pd.DataFrame) -> pd.DataFrame:
+    """
+    Une los DataFrames 'anime_filtered' y 'users_score' en base a la columna 'id_anime'.
+    Retorna el DataFrame unido.
+    """
+    final_anime_dataset = pd.merge(users_score, anime_filtered, on='id_anime', how='inner')
+
+
+    print(f"\n Dimensiones del DataFrame final después de la unión: {final_anime_dataset.shape}")
     return final_anime_dataset
+

@@ -2,8 +2,8 @@
 FROM apache/airflow:2.8.0-python3.11
 
 # Metadatos
-LABEL maintainer="spaceflights-team"
-LABEL description="Apache Airflow with Kedro Integration for Spaceflights"
+LABEL maintainer="proyecto_renato_barbara"
+LABEL description="Apache Airflow Environment for Kedro"
 
 # Cambiar a usuario root para instalar dependencias
 USER root
