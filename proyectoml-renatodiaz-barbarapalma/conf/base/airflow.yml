@@ -1,5 +1,6 @@
-# Configuración de Airflow para Spaceflights
 # Este archivo define los parámetros del DAG de Airflow
+
+dag_name: "anime_pipeline_dag"
 
 # Configuración del DAG
 dag:
@@ -34,8 +35,8 @@ operators:
 # Configuración de recursos
 resources:
   # Límites de recursos para las tareas
-  cpu_limit: "1000m"
-  memory_limit: "2Gi"
+  cpu_limit: "4000m"
+  memory_limit: "10Gi"
 
 # Configuración de notificaciones
 notifications:

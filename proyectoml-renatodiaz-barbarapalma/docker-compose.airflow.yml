@@ -3,17 +3,17 @@
 
 services:
   # Base de datos PostgreSQL para Airflow
-  proyecto-barbarapalma-renatodiaz-airflow-postgres:
+  airflow-postgres:
     image: postgres:15-alpine
-    container_name: proyecto-barbarapalma-renatodiaz-airflow-postgres
+    container_name: airflow-postgres
     environment:
       - POSTGRES_USER=airflow
       - POSTGRES_PASSWORD=airflow
       - POSTGRES_DB=airflow
     volumes:
-      - proyecto-barbarapalma-renatodiaz_airflow_postgres_data:/var/lib/postgresql/data
+      - airflow_postgres_data:/var/lib/postgresql/data
     networks:
-      - proyecto-barbarapalma-renatodiaz-airflow-network
+      - airflow-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
@@ -22,14 +22,14 @@ services:
       retries: 5
 
   # Redis para Celery (opcional, para ejecutores distribuidos)
-  proyecto-barbarapalma-renatodiaz-airflow-redis:
+  airflow-redis:
     image: redis:7-alpine
-    container_name: proyecto-barbarapalma-renatodiaz-airflow-redis
+    container_name: airflow-redis
     command: redis-server --appendonly yes
     volumes:
-      - proyecto-barbarapalma-renatodiaz_airflow_redis_data:/data
+      - airflow_redis_data:/data
     networks:
-      - proyecto-barbarapalma-renatodiaz-airflow-network
+      - airflow-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -38,14 +38,14 @@ services:
       retries: 5
 
   # Inicializador de Airflow
-  proyecto-barbarapalma-renatodiaz-airflow-init:
+  airflow-init:
     build:
       context: .
       dockerfile: docker/Dockerfile.airflow
-    container_name: proyecto-barbarapalma-renatodiaz-airflow-init
+    container_name: airflow-init
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@proyecto-barbarapalma-renatodiaz-airflow-postgres/airflow
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
       - AIRFLOW__CORE__FERNET_KEY=M0Q5RhSDhhTEZwd5bShf0hILBvTMz2q3-vdDvkiHxOE=
       - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=true
       - AIRFLOW__CORE__LOAD_EXAMPLES=false
@@ -62,9 +62,9 @@ services:
       - ./conf:/app/conf
       - ./src:/app/src
     networks:
-      - proyecto-barbarapalma-renatodiaz-airflow-network
+      - airflow-network
     depends_on:
-      proyecto-barbarapalma-renatodiaz-airflow-postgres:
+      airflow-postgres:
         condition: service_healthy
     command: >
       bash -c "
@@ -75,14 +75,16 @@ services:
     restart: "no"
 
   # Webserver de Airflow
-  proyecto-barbarapalma-renatodiaz-airflow-webserver:
+  airflow-webserver:
     build:
       context: .
       dockerfile: docker/Dockerfile.airflow
-    container_name: proyecto-barbarapalma-renatodiaz-airflow-webserver
+    container_name: airflow-webserver
+    mem_limit: 3g
+    memswap_limit: 8g
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@proyecto-barbarapalma-renatodiaz-airflow-postgres/airflow
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
       - AIRFLOW__CORE__FERNET_KEY=M0Q5RhSDhhTEZwd5bShf0hILBvTMz2q3-vdDvkiHxOE=
       - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=true
       - AIRFLOW__CORE__LOAD_EXAMPLES=false
@@ -101,9 +103,9 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - proyecto-barbarapalma-renatodiaz-airflow-network
+      - airflow-network
     depends_on:
-      proyecto-barbarapalma-renatodiaz-airflow-init:
+      airflow-init:
         condition: service_completed_successfully
     command: airflow webserver --port 8080
     restart: unless-stopped
@@ -112,16 +114,19 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    
 
   # Scheduler de Airflow
-  proyecto-barbarapalma-renatodiaz-airflow-scheduler:
+  airflow-scheduler:
     build:
       context: .
       dockerfile: docker/Dockerfile.airflow
-    container_name: proyecto-barbarapalma-renatodiaz-airflow-scheduler
+    container_name: airflow-scheduler
+    mem_limit: 3g
+    memswap_limit: 8g
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@proyecto-barbarapalma-renatodiaz-airflow-postgres/airflow
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
       - AIRFLOW__CORE__FERNET_KEY=M0Q5RhSDhhTEZwd5bShf0hILBvTMz2q3-vdDvkiHxOE=
       - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=true
       - AIRFLOW__CORE__LOAD_EXAMPLES=false
@@ -136,20 +141,21 @@ services:
       - ./conf:/app/conf
       - ./src:/app/src
     networks:
-      - proyecto-barbarapalma-renatodiaz-airflow-network
+      - airflow-network
     depends_on:
-      proyecto-barbarapalma-renatodiaz-airflow-init:
+      airflow-init:
         condition: service_completed_successfully
     command: airflow scheduler
     restart: unless-stopped
+   
 
 volumes:
-  proyecto-barbarapalma-renatodiaz_airflow_postgres_data:
+  airflow_postgres_data:
     driver: local
-  proyecto-barbarapalma-renatodiaz_airflow_redis_data:
+  airflow_redis_data:
     driver: local
 
 networks:
-  proyecto-barbarapalma-renatodiaz-airflow-network:
-    name: proyecto-barbarapalma-renatodiaz-airflow-network
+  airflow-network:
+    name: airflow-network
     driver: bridge

@@ -2,8 +2,8 @@
 FROM python:3.11-slim
 
 # Metadatos
-LABEL maintainer="spaceflights-team"
-LABEL description="JupyterLab Development Environment for Kedro"
+LABEL maintainer="proyecto_renato_barbara"
+LABEL description="jupyter Environment for Kedro"
 
 # Variables de entorno
 ENV PYTHONUNBUFFERED=1
