@@ -154,3 +154,16 @@ kedro run
 ```bash
 kedro viz
 ```
+
+## Construcción de manual de imágenes
+
+```bash
+docker build -f docker/Dockerfile.kedro -t custom_kedro #Construir la imagen de Kedro
+docker build -f docker/Dockerfile.airflow -t custom_airflow #Construir la imagen de Airflow
+docker build -f docker/Dockerfile.jupyter -t custom_jupyter #Construir la imagen de Jupyter
+```
+## Construcción con Docker Compose
+
+```bash
+docker-compose build
+```
