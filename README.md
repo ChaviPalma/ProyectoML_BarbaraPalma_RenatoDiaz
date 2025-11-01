@@ -44,7 +44,9 @@ https://drive.google.com/drive/folders/1skjSbRVAH0YZRHZBv82O1jU3wuTuoH6V?usp=sha
 - **Apache-Airflow** >= 2.8.0
 - **Kedro-Airflow** >= 0.4.0
 - **psycopg2-binary** (Base de datos de Airflow)
- 
+- **statsmodels** >= 0.14.5
+- **pasty** >= 1.0.2
+
 ## Instalación
 
 1. Clonar el repositorio:
