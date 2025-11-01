@@ -4,6 +4,7 @@ from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import StandardScaler
 from scipy.stats import uniform, randint
 import warnings
 import gc
@@ -63,8 +64,8 @@ def Entrenar_modelo_clasificacion(
     parametros_clasificacion: dict
 ) -> tuple:
     """
-    Entrena y evalúa varios modelos de clasificación.
-    VERSIÓN MODIFICADA: Solo entrena y devuelve modelos + datos de test.
+    Entrena varios modelos de clasificación.
+    Implementa Standard Scaling y retorna los modelos, X_test (escalado) y y_test.
     """
 
     umbral_de_interes = 7
@@ -83,8 +84,10 @@ def Entrenar_modelo_clasificacion(
     existing_features_to_drop = [col for col in features_to_drop if col in df_temp.columns]
     X = df_temp.drop(columns=existing_features_to_drop, errors='ignore')
     X = X.select_dtypes(include=['number', 'bool'])
+    
     for col in X.select_dtypes(include=['bool']).columns:
         X[col] = X[col].astype(int)
+        
     combined = pd.concat([X, y], axis=1).dropna()
     X = combined.drop(columns=y.name)
     y = combined[y.name]
@@ -94,7 +97,7 @@ def Entrenar_modelo_clasificacion(
     
     print(f"✅ X final contiene {X.shape[1]} características: {X.columns.tolist()[:5]}...")
 
-    # --- 4. DIVISIÓN DE DATOS ---
+    # --- 1. DIVISIÓN DE DATOS ---
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
         test_size=parametros_clasificacion["test_size"],
@@ -102,12 +105,21 @@ def Entrenar_modelo_clasificacion(
         stratify=y
     )
 
-    # --- 5. DEFINICIÓN DE MODELOS ---
+    # --- 2. ESCALADO Y RECONSTRUCCIÓN ---
+    scaler = StandardScaler()
+    X_train_scaled_array = scaler.fit_transform(X_train)
+    X_test_scaled_array = scaler.transform(X_test)
+    
+    # Se sobrescribe X_test con la versión escalada para el retorno
+    X_train = pd.DataFrame(X_train_scaled_array, columns=X_train.columns, index=X_train.index)
+    X_test = pd.DataFrame(X_test_scaled_array, columns=X_test.columns, index=X_test.index) # <--- X_test AHORA contiene los datos ESCALADOS
+
+    # --- 3. DEFINICIÓN Y ENTRENAMIENTO DE MODELOS ---
     modelos = {
-        "LogisticRegression": (LogisticRegression(max_iter=1000, solver='liblinear'), {
+        "LogisticRegression": (LogisticRegression(max_iter=10000, solver='liblinear', random_state=parametros_clasificacion["random_state"]), {
             "C": uniform(0.01, 10), "penalty": ['l1', 'l2']
         }),
-        "SGDClassifier": (SGDClassifier(random_state=parametros_clasificacion["random_state"]), {
+        "SGDClassifier": (SGDClassifier(random_state=parametros_clasificacion["random_state"], max_iter=10000), {
             "loss": ['hinge', 'log_loss'], "alpha": uniform(0.0001, 0.01),
             "penalty": ['l2', 'l1', 'elasticnet']
         }),
@@ -131,6 +143,8 @@ def Entrenar_modelo_clasificacion(
         
         for nombre, (modelo, distribucion) in modelos.items():
             
+            X_train_data = X_train # Usamos X_train ESCALADO
+            
             if distribucion:
                 print(f" Buscando mejores hiperparámetros para {nombre}...")
                 search = RandomizedSearchCV(
@@ -141,11 +155,11 @@ def Entrenar_modelo_clasificacion(
                     n_jobs=-1,
                     scoring='accuracy'
                 )
-                search.fit(X_train, y_train)
+                search.fit(X_train_data, y_train)
                 mejor_modelo = search.best_estimator_
                 
             else:
-                mejor_modelo = modelo.fit(X_train, y_train)
+                mejor_modelo = modelo.fit(X_train_data, y_train)
                 
             modelos_entrenados[nombre] = mejor_modelo
             print(f"✅ {nombre} entrenado.")
@@ -153,4 +167,5 @@ def Entrenar_modelo_clasificacion(
     print("✅ Entrenamiento de todos los modelos de clasificación completado.")
     gc.collect()
 
+    # Se retorna X_test que ahora contiene los datos ESCALADOS
     return modelos_entrenados, X_test, y_test
