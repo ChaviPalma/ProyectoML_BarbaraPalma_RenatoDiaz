@@ -4,9 +4,6 @@ from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.preprocessing import StandardScaler
-
-from sklearn.metrics import accuracy_score, f1_score
 from scipy.stats import uniform, randint
 import warnings
 import gc
@@ -61,20 +58,19 @@ def preprocesar_anime_dataset_clasificacion(final_anime_dataset: pd.DataFrame) -
 
     return final_anime_dataset
 
-def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros_clasificacion: dict) -> tuple[dict, dict]:
+def Entrenar_modelo_clasificacion( 
+    final_anime_dataset: pd.DataFrame, 
+    parametros_clasificacion: dict
+) -> tuple:
     """
-    Entrena y evalúa varios modelos de clasificación para predecir si un usuario estará interesado en un anime.
-    Incluye estandarización de características.
+    Entrena y evalúa varios modelos de clasificación.
+    VERSIÓN MODIFICADA: Solo entrena y devuelve modelos + datos de test.
     """
 
-    # --- 1. INGENIERÍA DE CARACTERÍSTICAS Y OBJETIVO (y) ---
     umbral_de_interes = 7
-
-    # Crear la variable objetivo 'Interesado'
     final_anime_dataset['Interesado'] = (final_anime_dataset['puntuacion_usuario'] > umbral_de_interes).astype(int)
     y = final_anime_dataset['Interesado']
     
-    # --- 2. SELECCIÓN DE CARACTERÍSTICAS (X) ---
     features_to_drop = [
         'nombre_usuario', 'id_anime', 'titulo_anime', 'puntuacion_usuario', 'nombre_anime',
         'puntuacion', 'sinopsis', 'tipo_anime_filtered', 'total_episodios', 'emitido',
@@ -83,26 +79,20 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
         'en_espera', 'abandonado', 'duracion_minutos', 'GenerosAnime_list',
         'genero_preferido', 'User_Average_Rating', 'Interesado'
     ]
-
     df_temp = final_anime_dataset.copy()
     existing_features_to_drop = [col for col in features_to_drop if col in df_temp.columns]
     X = df_temp.drop(columns=existing_features_to_drop, errors='ignore')
-
     X = X.select_dtypes(include=['number', 'bool'])
     for col in X.select_dtypes(include=['bool']).columns:
         X[col] = X[col].astype(int)
-        
-    # --- 3. VALIDACIÓN Y LIMPIEZA FINAL ---
     combined = pd.concat([X, y], axis=1).dropna()
     X = combined.drop(columns=y.name)
     y = combined[y.name]
-
+    
     if X.empty or X.shape[1] == 0:
-        print(f"Columnas finales en X: {X.columns.tolist()}")
-        gc.collect()
         raise ValueError("La matriz de características (X) está vacía.")
-
-    print(f"✅ X final contiene {X.shape[1]} características.")
+    
+    print(f"✅ X final contiene {X.shape[1]} características: {X.columns.tolist()[:5]}...")
 
     # --- 4. DIVISIÓN DE DATOS ---
     X_train, X_test, y_train, y_test = train_test_split(
@@ -111,32 +101,16 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
         random_state=parametros_clasificacion["random_state"],
         stratify=y
     )
-    
-    ## PASO CLAVE: ESCALADO DE DATOS
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-    
-    # Convertir de vuelta a DataFrame para modelos que lo requieran
-    X_train_scaled = pd.DataFrame(X_train_scaled, columns=X_train.columns)
-    X_test_scaled = pd.DataFrame(X_test_scaled, columns=X_test.columns)
-
 
     # --- 5. DEFINICIÓN DE MODELOS ---
     modelos = {
-        # Modelos lineales sensibles a la escala (usarán datos escalados)
-        "LogisticRegression": (LogisticRegression(max_iter=1000, solver='liblinear', random_state=parametros_clasificacion["random_state"]), {
-            "C": uniform(0.01, 10),
-            "penalty": ['l1', 'l2']
+        "LogisticRegression": (LogisticRegression(max_iter=1000, solver='liblinear'), {
+            "C": uniform(0.01, 10), "penalty": ['l1', 'l2']
         }),
-        "SGDClassifier": (SGDClassifier(random_state=parametros_clasificacion["random_state"]),
-            {
-                "loss": ['hinge', 'log_loss'],
-                "alpha": uniform(0.0001, 0.01),
-                "penalty": ['l2', 'l1', 'elasticnet']
-            }
-        ),
-        # Modelos basados en árboles/distancia (pueden usar datos sin escalar, pero escalados no les perjudica)
+        "SGDClassifier": (SGDClassifier(random_state=parametros_clasificacion["random_state"]), {
+            "loss": ['hinge', 'log_loss'], "alpha": uniform(0.0001, 0.01),
+            "penalty": ['l2', 'l1', 'elasticnet']
+        }),
         "RandomForest": (RandomForestClassifier(random_state=parametros_clasificacion["random_state"]), {
             "n_estimators": randint(50, 100), "max_depth": randint(3, 10)
         }),
@@ -144,32 +118,19 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
             "max_depth": randint(2, 10), "min_samples_split": randint(2, 10),
             "criterion": ['gini', 'entropy']
         }),
-        "DecisionTree": (DecisionTreeClassifier(random_state=parametros_clasificacion["random_state"]),
-            {
-                "max_depth": randint(2, 10),
-                "min_samples_split": randint(2, 10),
-                "criterion": ['gini', 'entropy']
-            }
-        ),
         "KNeighborsClassifier": (KNeighborsClassifier(), {
-            "n_neighbors": randint(3, 10),
-            "weights": ['uniform', 'distance']
+            "n_neighbors": randint(3, 20), "weights": ['uniform', 'distance']
         })
     }
 
     modelos_entrenados = {}
     
-    # 6. ENTRENAMIENTO Y EVALUACIÓN
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=FutureWarning)
         warnings.filterwarnings("ignore", category=UserWarning)
         
         for nombre, (modelo, distribucion) in modelos.items():
             
-            # Usar datos escalados para todos, ya que todos son sensibles a la escala o no les afecta negativamente.
-            X_train_data = X_train_scaled
-            X_test_data = X_test_scaled
-
             if distribucion:
                 print(f" Buscando mejores hiperparámetros para {nombre}...")
                 search = RandomizedSearchCV(
@@ -177,22 +138,15 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
                     n_iter=parametros_clasificacion.get("n_iter", 5),
                     cv=parametros_clasificacion.get("cv", 5),
                     random_state=parametros_clasificacion["random_state"],
-                    n_jobs=1,
+                    n_jobs=-1,
                     scoring='accuracy'
                 )
-                search.fit(X_train_data, y_train)
+                search.fit(X_train, y_train)
                 mejor_modelo = search.best_estimator_
                 
             else:
-                mejor_modelo = modelo.fit(X_train_data, y_train)
+                mejor_modelo = modelo.fit(X_train, y_train)
                 
-            y_pred = mejor_modelo.predict(X_test_data)
-            
-            # Métricas para clasificación
-            accuracy = accuracy_score(y_test, y_pred)
-            f1 = f1_score(y_test, y_pred, average='weighted', zero_division=0) 
-
-            # Guardar resultados
             modelos_entrenados[nombre] = mejor_modelo
             print(f"✅ {nombre} entrenado.")
 
