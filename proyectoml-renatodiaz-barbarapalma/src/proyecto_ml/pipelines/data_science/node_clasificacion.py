@@ -166,6 +166,6 @@ def Entrenar_modelo_clasificacion(
 
     print("✅ Entrenamiento de todos los modelos de clasificación completado.")
     gc.collect()
-
+    y_test = y_test.to_frame()
     # Se retorna X_test que ahora contiene los datos ESCALADOS
     return modelos_entrenados, X_test, y_test

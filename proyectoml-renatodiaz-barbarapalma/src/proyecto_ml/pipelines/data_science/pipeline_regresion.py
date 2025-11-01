@@ -19,7 +19,7 @@ def create_pipeline(**kwargs) -> Pipeline:
         node(
             func=Entrenar_modelo_regresion,
             inputs=["final_anime_dataset_regresion", "params:parametros_regresion"],
-            outputs=["modelos_entrenados_regresion", "metricas_modelos_regresion"],
+            outputs=["modelos_entrenados_regresion", "X_test_regresion", "y_test_regresion"],
             name="node_entrenar_modelo_regresion"
           )
         ]

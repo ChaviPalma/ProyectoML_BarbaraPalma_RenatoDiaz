@@ -106,7 +106,7 @@ def Entrenar_modelo_regresion(
             
             modelos_entrenados[nombre] = mejor_modelo
             print(f"✅ {nombre} entrenado.")
-
+    y_test = y_test.to_frame()
     # 5. RETORNO DE RESULTADOS
     # Se retorna X_test que contiene los datos ESCALADOS listos para la evaluación.
     return modelos_entrenados, X_test, y_test

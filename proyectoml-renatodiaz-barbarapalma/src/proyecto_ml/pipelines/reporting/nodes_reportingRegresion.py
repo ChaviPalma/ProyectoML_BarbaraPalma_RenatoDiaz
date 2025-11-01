@@ -10,7 +10,7 @@ def calcular_metricas_modelos(
     X_test: pd.DataFrame, 
     y_test: pd.Series
 ) -> dict:
- 
+    
     print("Iniciando cálculo de métricas en el pipeline de reporting...")
     metricas_modelos = {}
     
@@ -19,6 +19,7 @@ def calcular_metricas_modelos(
         y_pred = modelo.predict(X_test)
         
         # Calculamos las métricas aquí
+        # Nota: y_test y y_pred se asume que están alineados por índice o son arrays compatibles.
         mse = mean_squared_error(y_test, y_pred)
         r2 = r2_score(y_test, y_pred)
         mae = mean_absolute_error(y_test, y_pred)
@@ -84,11 +85,19 @@ def plot_actual_vs_predicted(
     
     plt.scatter(y_test, y_pred, alpha=0.3, s=10, label="Predicciones")
     
-    # Línea de predicción perfecta (y=x)
+    # CORRECCIÓN CLAVE: Se usa .values.min() y np.min() para obtener escalares puros,
+    # eliminando el error de "Series is ambiguous".
+    y_test_min = y_test.values.min()
+    y_pred_min = np.min(y_pred)
+    
+    y_test_max = y_test.values.max()
+    y_pred_max = np.max(y_pred)
+
     lims = [
-        min(y_test.min(), y_pred.min()),
-        max(y_test.max(), y_pred.max())
+        min(y_test_min, y_pred_min),
+        max(y_test_max, y_pred_max)
     ]
+    
     plt.plot(lims, lims, 'r--', lw=2, label='Predicción Perfecta (y=x)')
     
     plt.xlabel("Valores Reales (y_test)")
@@ -101,43 +110,41 @@ def plot_actual_vs_predicted(
 
 # --- GRÁFICO 3: Función Genérica "Gráfico de Residuos" ---
 
-def plot_residuos(
-    modelo: any, 
-    X_test: pd.DataFrame, 
-    y_test: pd.Series, 
-    nombre_modelo: str
-) -> plt.Figure:
+def plot_residuos(modelo, X_test, y_test, nombre_modelo: str) -> plt.Figure:
     """
-    Genera un gráfico de residuos (error) vs. valores predichos
-    para UN modelo específico.
+    Genera un gráfico de residuos (error) vs. valores predichos para UN modelo específico.
     """
     y_pred = modelo.predict(X_test)
+    
+    # Convertir a vectores 1D
+    y_test = np.ravel(y_test)
+    y_pred = np.ravel(y_pred)
+    
     residuos = y_test - y_pred
-    
+
     fig = plt.figure(figsize=(12, 7))
-    
     sns.residplot(
-        x=pd.Series(y_pred, name="Valores Predichos"),
-        y=pd.Series(residuos, name="Residuos"),
+        x=y_pred,
+        y=residuos,
         lowess=True,
         scatter_kws={'alpha': 0.3, 's': 10},
         line_kws={'color': 'red', 'lw': 2, 'label': 'Tendencia de Error'}
     )
     
-    plt.axhline(0, color='black', linestyle='--', lw=1) # Línea de error cero
+    plt.axhline(0, color='black', linestyle='--', lw=1)
     plt.title(f"Gráfico de Residuos - Modelo: {nombre_modelo}")
     plt.legend()
     
     return fig
+
 
 # --- Función 4: "Ayudante" para extraer modelos del diccionario ---
 
 def get_model_from_dict(model_dict: dict, model_name: str) -> any:
     """
     Extrae un modelo específico del diccionario de modelos entrenados.
-    Es necesario para que el pipeline pueda pasar el modelo
-    correcto al nodo de gráfico correcto.
     """
+    # Si el input viene del formato params:, model_name ya está resuelto a su valor literal.
     if model_name not in model_dict:
         raise KeyError(f"Modelo '{model_name}' no encontrado en el diccionario. "
                        f"Modelos disponibles: {list(model_dict.keys())}")
