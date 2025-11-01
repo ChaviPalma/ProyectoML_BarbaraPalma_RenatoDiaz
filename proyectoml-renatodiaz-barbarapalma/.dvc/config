@@ -2,3 +2,6 @@
     remote = local_storage
 ['remote "local_storage"']
     url = C:\Users\Renat\dvc_storage
+
+
+

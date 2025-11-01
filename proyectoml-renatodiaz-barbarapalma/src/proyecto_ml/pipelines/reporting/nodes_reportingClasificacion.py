@@ -5,11 +5,13 @@ from sklearn.metrics import (
     accuracy_score, 
     f1_score, 
     classification_report, 
-    confusion_matrix
+    confusion_matrix,
+    roc_curve,
+    auc
 )
 import numpy as np
 
-# --- NODO 1: Cálculo de Métricas ---
+# --- Cálculo de Métricas ---
 
 def calcular_metricas_clasificacion(
     modelos_entrenados: dict, 
@@ -49,7 +51,7 @@ def calcular_metricas_clasificacion(
         
     return metricas_modelos, reportes_clasificacion
 
-# --- NODO 2: Gráfico de Comparación de Métricas ---
+# --- NODO 1: Gráfico de Comparación de Métricas ---
 
 def plot_metricas_comparativas_clasificacion(metricas_modelos: dict) -> plt.Figure:
     """
@@ -79,7 +81,7 @@ def plot_metricas_comparativas_clasificacion(metricas_modelos: dict) -> plt.Figu
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     return fig
 
-# --- NODO 3: Gráfico de Matriz de Confusión  ---
+# --- NODO 2: Gráfico de Matriz de Confusión  ---
 
 def plot_confusion_matrix(
     modelo: any, 
@@ -102,6 +104,51 @@ def plot_confusion_matrix(
     ax.set_ylabel('Etiqueta Real')
     ax.set_xlabel('Etiqueta Predicha')
     ax.set_title(f"Matriz de Confusión - Modelo: {nombre_modelo}")
+    return fig
+
+# --- NODO 3: Gráfico de Curva ROC ---
+
+def plot_roc_curve(
+    modelo: any, 
+    X_test: pd.DataFrame, 
+    y_test: pd.Series, 
+    nombre_modelo: str
+) -> plt.Figure:
+    if hasattr(modelo, "predict_proba"):
+        # Usar [:, 1] para obtener la probabilidad de la clase positiva (1)
+        y_scores = modelo.predict_proba(X_test)[:, 1]
+    elif hasattr(modelo, "decision_function"):
+        y_scores = modelo.decision_function(X_test)
+    else:
+        # Si el modelo no tiene ninguno, no podemos graficar
+        fig, ax = plt.subplots()
+        ax.text(0.5, 0.5, f"El modelo '{nombre_modelo}'\nno tiene 'predict_proba' o 'decision_function'.\nNo se puede generar Curva ROC.",
+                horizontalalignment='center', verticalalignment='center',
+                fontsize=12, color='red')
+        return fig
+
+    # Calcular FPR, TPR y el área bajo la curva (AUC)
+    fpr, tpr, _ = roc_curve(y_test, y_scores)
+    roc_auc = auc(fpr, tpr)
+
+    # Crear la figura
+    fig = plt.figure(figsize=(10, 8))
+    
+    # Graficar la curva ROC
+    plt.plot(fpr, tpr, color='darkorange', lw=2, 
+             label=f'Curva ROC (Área = {roc_auc:.2f})')
+    
+    # Graficar la línea de "no acierto" (aleatoria)
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('Tasa de Falsos Positivos (FPR)')
+    plt.ylabel('Tasa de Verdaderos Positivos (TPR)')
+    plt.title(f'Curva ROC - Modelo: {nombre_modelo}')
+    plt.legend(loc="lower right")
+    plt.grid(True)
+    
     return fig
 
 # --- NODO 4: "Ayudante" para extraer modelos  ---
