@@ -57,3 +57,100 @@ modelos_entrenados_clasificacion:
 metricas_clasificacion:
   type: json.JSONDataset
   filepath: data/08_reporting/metricas_clasificacion.json
+
+# --- Salidas del Pipeline de Reporting (Regresión) ---
+
+# Salida del Nodo 1: El JSON con todas las métricas
+metricas_modelos:
+  type: json.JSONDataSet
+  filepath: data/08_reporting/regresion/metricas_modelos.json
+
+# Salida del Nodo 2: El gráfico de barras comparativo
+grafico_comparativo_metricas:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/regresion/comparacion_metricas.png
+
+# --- Salidas del Bucle (Gráficos por Modelo) ---
+
+# --- LinearRegression ---
+grafico_actual_vs_pred_LinearRegression:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/regresion/LinearRegression_actual_vs_pred.png
+
+grafico_residuos_LinearRegression:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/regresion/LinearRegression_residuos.png
+
+# --- Ridge ---
+grafico_actual_vs_pred_Ridge:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/regresion/Ridge_actual_vs_pred.png
+
+grafico_residuos_Ridge:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/regresion/Ridge_residuos.png
+
+# --- Lasso ---
+grafico_actual_vs_pred_Lasso:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/regresion/Lasso_actual_vs_pred.png
+
+grafico_residuos_Lasso:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/regresion/Lasso_residuos.png
+
+# --- RandomForest ---
+grafico_actual_vs_pred_RandomForest:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/regresion/RandomForest_actual_vs_pred.png
+
+grafico_residuos_RandomForest:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/regresion/RandomForest_residuos.png
+
+# --- GradientBoosting ---
+grafico_actual_vs_pred_GradientBoosting:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/regresion/GradientBoosting_actual_vs_pred.png
+
+grafico_residuos_GradientBoosting:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/regresion/GradientBoosting_residuos.png
+
+# --- Salidas del Pipeline de Reporting (Clasificación) ---
+
+# Salida del Nodo 1: Dos JSONs
+metricas_modelos_clasificacion:
+  type: json.JSONDataSet
+  filepath: data/08_reporting/clasificacion/metricas_modelos.json
+
+reportes_clasificacion:
+  type: json.JSONDataSet
+  filepath: data/08_reporting/clasificacion/reportes_completos.json
+
+# Salida del Nodo 2: Gráfico comparativo
+grafico_comparativo_metricas_clasificacion:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/clasificacion/comparacion_metricas.png
+
+# --- Salidas del Bucle  ---
+
+grafico_matriz_confusion_LogisticRegression:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/clasificacion/matriz_confusion_LogisticRegression.png
+
+grafico_matriz_confusion_SGDClassifier:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/clasificacion/matriz_confusion_SGDClassifier.png
+
+grafico_matriz_confusion_RandomForest:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/clasificacion/matriz_confusion_RandomForest.png
+
+grafico_matriz_confusion_DecisionTree:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/clasificacion/matriz_confusion_DecisionTree.png
+  
+grafico_matriz_confusion_KNeighborsClassifier:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/clasificacion/matriz_confusion_KNeighborsClassifier.png

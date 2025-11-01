@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.linear_model import LogisticRegression, SGDClassifier
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler
@@ -81,7 +81,7 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
         'fecha_estreno', 'estudios', 'fuente', 'duracion', 'posicion_anime',
         'popularidad', 'miembros', 'favoritos', 'viendo', 'completado',
         'en_espera', 'abandonado', 'duracion_minutos', 'GenerosAnime_list',
-        'genero_preferido', 'User_Average_Rating', 'Interesado' # Incluir el target aquí
+        'genero_preferido', 'User_Average_Rating', 'Interesado'
     ]
 
     df_temp = final_anime_dataset.copy()
@@ -138,8 +138,11 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
         ),
         # Modelos basados en árboles/distancia (pueden usar datos sin escalar, pero escalados no les perjudica)
         "RandomForest": (RandomForestClassifier(random_state=parametros_clasificacion["random_state"]), {
-            "n_estimators": randint(50, 100),
-            "max_depth": randint(3, 10)
+            "n_estimators": randint(50, 100), "max_depth": randint(3, 10)
+        }),
+        "DecisionTree": (DecisionTreeClassifier(random_state=parametros_clasificacion["random_state"]), {
+            "max_depth": randint(2, 10), "min_samples_split": randint(2, 10),
+            "criterion": ['gini', 'entropy']
         }),
         "DecisionTree": (DecisionTreeClassifier(random_state=parametros_clasificacion["random_state"]),
             {
@@ -154,9 +157,7 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
         })
     }
 
-
     modelos_entrenados = {}
-    metricas_modelos = {}
     
     # 6. ENTRENAMIENTO Y EVALUACIÓN
     with warnings.catch_warnings():
@@ -172,8 +173,7 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
             if distribucion:
                 print(f" Buscando mejores hiperparámetros para {nombre}...")
                 search = RandomizedSearchCV(
-                    modelo,
-                    distribucion,
+                    modelo, distribucion,
                     n_iter=parametros_clasificacion.get("n_iter", 5),
                     cv=parametros_clasificacion.get("cv", 5),
                     random_state=parametros_clasificacion["random_state"],
@@ -194,12 +194,9 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
 
             # Guardar resultados
             modelos_entrenados[nombre] = mejor_modelo
-            metricas_modelos[nombre] = {"Accuracy": accuracy, "F1-Score": f1}
-
-            print(f" {nombre} entrenado - Accuracy: {accuracy:.3f}, F1-Score (W): {f1:.3f}")
-
+            print(f"✅ {nombre} entrenado.")
 
     print("✅ Entrenamiento de todos los modelos de clasificación completado.")
     gc.collect()
 
-    return modelos_entrenados, metricas_modelos
+    return modelos_entrenados, X_test, y_test
