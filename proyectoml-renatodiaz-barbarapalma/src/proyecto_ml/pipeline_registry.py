@@ -19,7 +19,7 @@ def register_pipelines() -> dict[str, Pipeline]:
 
     return {
 
-        "__default__": data_processing_pipeline + regresion_pipeline,
+        "__default__": data_processing_pipeline + regresion_pipeline + clasificacion_pipeline,
         "data_processing": data_processing_pipeline,
         "regresion": regresion_pipeline, # Registra el pipeline RLS completo
         "clasificacion": clasificacion_pipeline, # Registra el pipeline de clasificación

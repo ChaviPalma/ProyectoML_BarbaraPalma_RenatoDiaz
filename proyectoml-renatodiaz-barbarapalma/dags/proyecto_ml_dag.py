@@ -9,7 +9,7 @@ from airflow.operators.bash import BashOperator
 # Definición de la plantilla del comando Kedro. Los nodos se ejecutan usando '--nodes'.
 KEDRO_RUN_COMMAND = "cd /app && kedro run --nodes {node_tag}"
 
-# Definición del DAG
+# Definición del DAGgg
 with DAG(
     dag_id="proyecto_ml_pipeline",
     schedule_interval=None,
