@@ -2,9 +2,23 @@ import pandas as pd
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.metrics import mean_squared_error, r2_score
 from scipy.stats import uniform, randint
 
-# ... (tu función preprocesar_anime_dataset sigue igual) ...
+
+def preprocesar_anime_dataset(final_anime_dataset: pd.DataFrame) -> pd.DataFrame:
+    final_anime_dataset = final_anime_dataset.dropna(subset=['total_episodios'])
+    final_anime_dataset = final_anime_dataset.dropna(subset=['posicion_anime'])
+    final_anime_dataset['generos_anime'] = final_anime_dataset['generos_anime'].str.split(', ')
+    # Luego, crear las columnas dummy para cada género
+    generos_dummies = final_anime_dataset['generos_anime'].str.join('|').str.get_dummies()
+    # Unir las nuevas columnas dummy al DataFrame original
+    final_anime_dataset = pd.concat([final_anime_dataset, generos_dummies], axis=1)
+    # Eliminar la columna original 'GenerosAnime' y la columna de lista temporal
+    final_anime_dataset = final_anime_dataset.drop(columns=['generos_anime'])
+    return final_anime_dataset
+
+
 
 def Entrenar_modelo_regresion( 
     final_anime_dataset: pd.DataFrame, 

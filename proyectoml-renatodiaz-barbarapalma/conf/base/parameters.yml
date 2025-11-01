@@ -16,3 +16,10 @@ Ridge_name: "Ridge Regression"
 Lasso_name: "Lasso Regression"
 RandomForest_name: "Random Forest"
 GradientBoosting_name: "Gradient Boosting"
+
+# Nombres para los títulos de los gráficos de clasificación
+LogisticRegression_name_class: "Logistic Regression"
+SGDClassifier_name_class: "SGD Classifier"
+RandomForest_name_class: "Random Forest"
+DecisionTree_name_class: "Decision Tree"
+KNeighborsClassifier_name_class: "K-Nearest Neighbors"
