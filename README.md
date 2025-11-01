@@ -2,7 +2,7 @@
 
 ## Integrantes 
 
-1. Barbara Palma
+1. Bárbara Palma
 2. Renato Díaz
 
 ## Descripción 
@@ -135,15 +135,17 @@ pip install -r requirements.txt
 ```bash
 kedro run --pipeline=data_processing
 ```
-## Ejecución para la fase 4 y 5
+## Ejecución para la fase 4 (Regresion y clasificación)
 
 ```bash
-kedro run --pipeline=data_science
+kedro run --pipeline=regresion
+kedro run --pipeline=clasificacion
 ```
 ## Ejecución para la fase 5
 
 ```bash
-kedro run --pipeline=reporting
+kedro run --pipeline reporting_clasificacion
+kedro run --pipeline reporting_regresion
 ```
 ## Ejecución para todo el proyecto
 
