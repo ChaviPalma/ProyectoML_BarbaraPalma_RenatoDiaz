@@ -9,3 +9,10 @@ parametros_regresion:
 parametros_clasificacion:
   test_size: 0.2
   random_state: 42
+
+# Nombres para los títulos de los gráficos de regresión
+LinearRegression_name: "Linear Regression"
+Ridge_name: "Ridge Regression"
+Lasso_name: "Lasso Regression"
+RandomForest_name: "Random Forest"
+GradientBoosting_name: "Gradient Boosting"
