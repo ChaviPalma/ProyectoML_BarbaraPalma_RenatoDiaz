@@ -86,6 +86,7 @@ services:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
       - AIRFLOW__CORE__FERNET_KEY=M0Q5RhSDhhTEZwd5bShf0hILBvTMz2q3-vdDvkiHxOE=
+      - AIRFLOW__WEBSERVER__SECRET_KEY=M0Q5RhSDhhTEZwd5bShf0hILBvTMz2q3-vdDvkiHxOE=
       - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=true
       - AIRFLOW__CORE__LOAD_EXAMPLES=false
       - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.basic_auth

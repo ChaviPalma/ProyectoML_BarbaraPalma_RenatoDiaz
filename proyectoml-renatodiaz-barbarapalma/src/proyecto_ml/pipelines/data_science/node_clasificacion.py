@@ -4,6 +4,7 @@ from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import StandardScaler
 
 from sklearn.metrics import accuracy_score, f1_score
 from scipy.stats import uniform, randint
@@ -60,24 +61,20 @@ def preprocesar_anime_dataset_clasificacion(final_anime_dataset: pd.DataFrame) -
 
     return final_anime_dataset
 
-def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros_clasificacion: dict)-> tuple[dict, dict]:
+def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros_clasificacion: dict) -> tuple[dict, dict]:
     """
     Entrena y evalúa varios modelos de clasificación para predecir si un usuario estará interesado en un anime.
-    Retorna los modelos entrenados y sus métricas de evaluación.
+    Incluye estandarización de características.
     """
 
-    
-     # --- 1. INGENIERÍA DE CARACTERÍSTICAS Y OBJETIVO (y) ---
+    # --- 1. INGENIERÍA DE CARACTERÍSTICAS Y OBJETIVO (y) ---
     umbral_de_interes = 7
 
     # Crear la variable objetivo 'Interesado'
-    # 1 si la puntuación del usuario es mayor que el umbral, 0 en caso contrario
     final_anime_dataset['Interesado'] = (final_anime_dataset['puntuacion_usuario'] > umbral_de_interes).astype(int)
     y = final_anime_dataset['Interesado']
     
     # --- 2. SELECCIÓN DE CARACTERÍSTICAS (X) ---
-    # Definir las columnas a eliminar (características que no se usarán para el modelo)
-    # Incluye el nuevo objetivo 'Interesado' y el objetivo original 'puntuacion_usuario'
     features_to_drop = [
         'nombre_usuario', 'id_anime', 'titulo_anime', 'puntuacion_usuario', 'nombre_anime',
         'puntuacion', 'sinopsis', 'tipo_anime_filtered', 'total_episodios', 'emitido',
@@ -87,39 +84,25 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
         'genero_preferido', 'User_Average_Rating', 'Interesado' # Incluir el target aquí
     ]
 
-    # Crear la matriz de características (X) eliminando las columnas no deseadas
-    # Copia el DataFrame para evitar SettingWithCopyWarning
     df_temp = final_anime_dataset.copy()
-    
-    # Filtrar las columnas a eliminar para asegurarse de que existen en el DataFrame
     existing_features_to_drop = [col for col in features_to_drop if col in df_temp.columns]
-    
     X = df_temp.drop(columns=existing_features_to_drop, errors='ignore')
 
-    # Seleccionar solo las columnas numéricas y booleanas para las características
     X = X.select_dtypes(include=['number', 'bool'])
-
-    # Convertir las columnas booleanas a tipo entero (0s y 1s)
     for col in X.select_dtypes(include=['bool']).columns:
         X[col] = X[col].astype(int)
         
-    # --- 3. VALIDACIÓN Y PREPARACIÓN FINAL ---
-    # Eliminar filas con NaN en X e Y (importante para modelos basados en árboles que no manejan NaN)
+    # --- 3. VALIDACIÓN Y LIMPIEZA FINAL ---
     combined = pd.concat([X, y], axis=1).dropna()
     X = combined.drop(columns=y.name)
     y = combined[y.name]
 
-
-    # Aserción para asegurar que tenemos características para entrenar
     if X.empty or X.shape[1] == 0:
         print(f"Columnas finales en X: {X.columns.tolist()}")
         gc.collect()
-        raise ValueError(
-            "La matriz de características (X) está vacía o solo contiene columnas nulas/no numéricas "
-            "después de la selección y limpieza. Revise la lista `features_to_drop`."
-        )
+        raise ValueError("La matriz de características (X) está vacía.")
 
-    print(f"✅ X final contiene {X.shape[1]} características: {X.columns.tolist()[:5]}...")
+    print(f"✅ X final contiene {X.shape[1]} características.")
 
     # --- 4. DIVISIÓN DE DATOS ---
     X_train, X_test, y_train, y_test = train_test_split(
@@ -128,10 +111,21 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
         random_state=parametros_clasificacion["random_state"],
         stratify=y
     )
+    
+    ## PASO CLAVE: ESCALADO DE DATOS
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    # Convertir de vuelta a DataFrame para modelos que lo requieran
+    X_train_scaled = pd.DataFrame(X_train_scaled, columns=X_train.columns)
+    X_test_scaled = pd.DataFrame(X_test_scaled, columns=X_test.columns)
+
 
     # --- 5. DEFINICIÓN DE MODELOS ---
     modelos = {
-        "LogisticRegression": (LogisticRegression(max_iter=1000, solver='liblinear'), {
+        # Modelos lineales sensibles a la escala (usarán datos escalados)
+        "LogisticRegression": (LogisticRegression(max_iter=1000, solver='liblinear', random_state=parametros_clasificacion["random_state"]), {
             "C": uniform(0.01, 10),
             "penalty": ['l1', 'l2']
         }),
@@ -142,7 +136,7 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
                 "penalty": ['l2', 'l1', 'elasticnet']
             }
         ),
-
+        # Modelos basados en árboles/distancia (pueden usar datos sin escalar, pero escalados no les perjudica)
         "RandomForest": (RandomForestClassifier(random_state=parametros_clasificacion["random_state"]), {
             "n_estimators": randint(50, 100),
             "max_depth": randint(3, 10)
@@ -154,9 +148,8 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
                 "criterion": ['gini', 'entropy']
             }
         ),
-
-         "KNeighborsClassifier": (KNeighborsClassifier(), {
-            "n_neighbors": randint(3, 20),
+        "KNeighborsClassifier": (KNeighborsClassifier(), {
+            "n_neighbors": randint(3, 10),
             "weights": ['uniform', 'distance']
         })
     }
@@ -165,13 +158,17 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
     modelos_entrenados = {}
     metricas_modelos = {}
     
-    # Manejo de advertencias de convergencia para clasificadores lineales
+    # 6. ENTRENAMIENTO Y EVALUACIÓN
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=FutureWarning)
         warnings.filterwarnings("ignore", category=UserWarning)
         
         for nombre, (modelo, distribucion) in modelos.items():
             
+            # Usar datos escalados para todos, ya que todos son sensibles a la escala o no les afecta negativamente.
+            X_train_data = X_train_scaled
+            X_test_data = X_test_scaled
+
             if distribucion:
                 print(f" Buscando mejores hiperparámetros para {nombre}...")
                 search = RandomizedSearchCV(
@@ -180,16 +177,16 @@ def Entrenar_modelo_clasificacion( final_anime_dataset: pd.DataFrame, parametros
                     n_iter=parametros_clasificacion.get("n_iter", 5),
                     cv=parametros_clasificacion.get("cv", 5),
                     random_state=parametros_clasificacion["random_state"],
-                    n_jobs=-1,
+                    n_jobs=1,
                     scoring='accuracy'
                 )
-                search.fit(X_train, y_train)
+                search.fit(X_train_data, y_train)
                 mejor_modelo = search.best_estimator_
                 
             else:
-                mejor_modelo = modelo.fit(X_train, y_train)
+                mejor_modelo = modelo.fit(X_train_data, y_train)
                 
-            y_pred = mejor_modelo.predict(X_test)
+            y_pred = mejor_modelo.predict(X_test_data)
             
             # Métricas para clasificación
             accuracy = accuracy_score(y_test, y_pred)
