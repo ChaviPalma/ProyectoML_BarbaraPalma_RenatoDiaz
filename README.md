@@ -27,7 +27,7 @@ https://drive.google.com/drive/folders/1skjSbRVAH0YZRHZBv82O1jU3wuTuoH6V?usp=sha
 https://drive.google.com/drive/folders/1skjSbRVAH0YZRHZBv82O1jU3wuTuoH6V?usp=sharing](https://hub.docker.com/r/nato97/barbarapalma_renatodiaz_proyectoml
 
 ## Link video Evaluación 2
-
+https://drive.google.com/file/d/1rEnb-4p6ngnsjkIdoJwamlm5IfRTCAPh/view?usp=sharing
 
 ## Requisitos
 - **Python** 3.11
