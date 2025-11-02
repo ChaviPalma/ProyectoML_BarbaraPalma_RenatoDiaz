@@ -23,6 +23,9 @@ https://www.kaggle.com/datasets/dbdmobile/myanimelist-dataset/code?datasetId=338
 
 https://drive.google.com/drive/folders/1skjSbRVAH0YZRHZBv82O1jU3wuTuoH6V?usp=sharing
 
+## DockerHub
+https://drive.google.com/drive/folders/1skjSbRVAH0YZRHZBv82O1jU3wuTuoH6V?usp=sharing](https://hub.docker.com/r/nato97/barbarapalma_renatodiaz_proyectoml
+
 ## Link video Evaluación 2
 
 
