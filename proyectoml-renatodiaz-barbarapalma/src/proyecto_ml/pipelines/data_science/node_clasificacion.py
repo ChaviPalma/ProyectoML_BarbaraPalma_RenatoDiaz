@@ -95,7 +95,7 @@ def Entrenar_modelo_clasificacion(
     if X.empty or X.shape[1] == 0:
         raise ValueError("La matriz de características (X) está vacía.")
     
-    print(f"✅ X final contiene {X.shape[1]} características: {X.columns.tolist()[:5]}...")
+    print(f" X final contiene {X.shape[1]} características: {X.columns.tolist()[:5]}...")
 
     # --- 1. DIVISIÓN DE DATOS ---
     X_train, X_test, y_train, y_test = train_test_split(
@@ -112,8 +112,7 @@ def Entrenar_modelo_clasificacion(
     
     # Se sobrescribe X_test con la versión escalada para el retorno
     X_train = pd.DataFrame(X_train_scaled_array, columns=X_train.columns, index=X_train.index)
-    X_test = pd.DataFrame(X_test_scaled_array, columns=X_test.columns, index=X_test.index) # <--- X_test AHORA contiene los datos ESCALADOS
-
+    X_test = pd.DataFrame(X_test_scaled_array, columns=X_test.columns, index=X_test.index) 
     # --- 3. DEFINICIÓN Y ENTRENAMIENTO DE MODELOS ---
     modelos = {
         "LogisticRegression": (LogisticRegression(max_iter=10000, solver='liblinear', random_state=parametros_clasificacion["random_state"]), {
@@ -143,7 +142,7 @@ def Entrenar_modelo_clasificacion(
         
         for nombre, (modelo, distribucion) in modelos.items():
             
-            X_train_data = X_train # Usamos X_train ESCALADO
+            X_train_data = X_train 
             
             if distribucion:
                 print(f" Buscando mejores hiperparámetros para {nombre}...")
@@ -152,7 +151,7 @@ def Entrenar_modelo_clasificacion(
                     n_iter=parametros_clasificacion.get("n_iter", 5),
                     cv=parametros_clasificacion.get("cv", 5),
                     random_state=parametros_clasificacion["random_state"],
-                    n_jobs=-1,
+                    n_jobs=1,
                     scoring='accuracy'
                 )
                 search.fit(X_train_data, y_train)
@@ -162,9 +161,9 @@ def Entrenar_modelo_clasificacion(
                 mejor_modelo = modelo.fit(X_train_data, y_train)
                 
             modelos_entrenados[nombre] = mejor_modelo
-            print(f"✅ {nombre} entrenado.")
+            print(f" {nombre} entrenado.")
 
-    print("✅ Entrenamiento de todos los modelos de clasificación completado.")
+    print(" Entrenamiento de todos los modelos de clasificación completado.")
     gc.collect()
     y_test = y_test.to_frame()
     # Se retorna X_test que ahora contiene los datos ESCALADOS

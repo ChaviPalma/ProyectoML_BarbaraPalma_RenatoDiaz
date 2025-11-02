@@ -8,7 +8,7 @@ from .nodes_reportingRegresion import (
 )
 
 def create_pipeline(**kwargs) -> Pipeline:
-    # Nombres de tus modelos (DEBEN COINCIDIR con las CLAVES del diccionario de modelos)
+    # Nombres de tus modelos 
     nombres_modelos = [
         "LinearRegression",
         "Ridge",
@@ -19,7 +19,7 @@ def create_pipeline(**kwargs) -> Pipeline:
     
     pipeline_nodos = [] 
 
-    # 1. Nodo de cálculo de métricas (calcula R2, MSE, etc.)
+    # 1. Nodo de cálculo de métricas 
     nodo_calculo_metricas = node(
         func=calcular_metricas_modelos,
         inputs=[
@@ -27,7 +27,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             "X_test_regresion",
             "y_test_regresion"
         ],
-        outputs="metricas_modelos_regresion", # Corregido para usar el nombre completo del catálogo
+        outputs="metricas_modelos_regresion",
         name="calcular_metricas_regresion_node"
     )
     pipeline_nodos.append(nodo_calculo_metricas)
@@ -44,9 +44,7 @@ def create_pipeline(**kwargs) -> Pipeline:
     # 3. Bucle para generar Gráficos Individuales (Matriz X Modelos)
     for nombre in nombres_modelos:
         
-        # 3.1 NODO para obtener el modelo individual del diccionario
-        # FIX CRÍTICO: Se revierte al formato de lista simple. 
-        # Esto OBLIGA a Kedro a resolver la referencia 'params:...' a su VALOR literal.
+
         nodo_get_model = node(
             func=get_model_from_dict,
             inputs=[
@@ -64,7 +62,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 f"modelo_individual_{nombre}_reg",
                 "X_test_regresion",
                 "y_test_regresion",
-                f"params:model_names.{nombre}" # Título del gráfico (valor literal)
+                f"params:model_names.{nombre}" 
             ],
             outputs=f"grafico_actual_vs_pred_{nombre}", 
             name=f"plot_actual_vs_pred_{nombre}"
@@ -77,7 +75,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 f"modelo_individual_{nombre}_reg",
                 "X_test_regresion",
                 "y_test_regresion",
-                f"params:model_names.{nombre}" # Título del gráfico (valor literal)
+                f"params:model_names.{nombre}" 
             ],
             outputs=f"grafico_residuos_{nombre}", 
             name=f"plot_residuos_{nombre}"
