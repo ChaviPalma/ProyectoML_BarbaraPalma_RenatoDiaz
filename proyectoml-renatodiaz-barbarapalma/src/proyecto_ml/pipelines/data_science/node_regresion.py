@@ -13,7 +13,7 @@ def preprocesar_anime_dataset(final_anime_dataset: pd.DataFrame) -> pd.DataFrame
     final_anime_dataset = final_anime_dataset.dropna(subset=['total_episodios'])
     final_anime_dataset = final_anime_dataset.dropna(subset=['posicion_anime'])
     final_anime_dataset['generos_anime'] = final_anime_dataset['generos_anime'].str.split(', ')
-    # Luego, crear las columnas dummy para cada género
+ 
     generos_dummies = final_anime_dataset['generos_anime'].str.join('|').str.get_dummies()
     # Unir las nuevas columnas dummy al DataFrame original
     final_anime_dataset = pd.concat([final_anime_dataset, generos_dummies], axis=1)
@@ -42,7 +42,7 @@ def Entrenar_modelo_regresion(
     y = final_anime_dataset[parametros_regresion["target"]]
 
     # 1. DIVISIÓN DE DATOS
-    # X_test e y_test son la versión original (no escalada) aquí.
+   
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
         test_size=parametros_regresion["test_size"],
@@ -56,9 +56,8 @@ def Entrenar_modelo_regresion(
     X_train_scaled_array = scaler.fit_transform(X_train)
     X_test_scaled_array = scaler.transform(X_test)
     
-    # Sobrescribimos X_train y X_test con la versión escalada (manteniendo los nombres)
+
     X_train = pd.DataFrame(X_train_scaled_array, columns=X_train.columns, index=X_train.index)
-    # X_test AHORA contiene los datos ESCALADOS
     X_test = pd.DataFrame(X_test_scaled_array, columns=X_test.columns, index=X_test.index) 
 
     # 3. DEFINICIÓN DE MODELOS (Iteraciones aumentadas para Lasso/Ridge)
@@ -81,7 +80,6 @@ def Entrenar_modelo_regresion(
     
     # 4. ENTRENAMIENTO
     with warnings.catch_warnings():
-        # Ignorar advertencias de Scikit-learn (las manejamos con max_iter)
         warnings.filterwarnings("ignore", category=UserWarning) 
 
         for nombre, (modelo, distribucion) in modelos.items():
@@ -95,7 +93,7 @@ def Entrenar_modelo_regresion(
                     n_iter=parametros_regresion.get("n_iter", 5),
                     cv=parametros_regresion.get("cv", 5),
                     random_state=parametros_regresion["random_state"],
-                    n_jobs=-1 
+                    n_jobs=1 
                 )
                 search.fit(X_train, y_train)
                 mejor_modelo = search.best_estimator_
@@ -105,7 +103,7 @@ def Entrenar_modelo_regresion(
             
             
             modelos_entrenados[nombre] = mejor_modelo
-            print(f"✅ {nombre} entrenado.")
+            print(f" {nombre} entrenado.")
     y_test = y_test.to_frame()
     # 5. RETORNO DE RESULTADOS
     # Se retorna X_test que contiene los datos ESCALADOS listos para la evaluación.

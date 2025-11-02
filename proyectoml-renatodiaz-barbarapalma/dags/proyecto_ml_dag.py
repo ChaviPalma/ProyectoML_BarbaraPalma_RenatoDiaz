@@ -62,5 +62,42 @@ with DAG(
         bash_command=KEDRO_RUN_COMMAND.format(node_tag="node_entrenar_modelo_clasificacion"),
     )
 
-    # Definición del flujo
-    [procesar_anime, procesar_users] >> unir_datasets >> preprocesar_anime_dataset_regresion >> entrenar_regresion >> preprocesar_anime_dataset_clasificacion >> Entrenar_modelo_clasificacion  
+    calcular_metricas = BashOperator(
+        task_id="calcular_metricas_regresion_node",
+        bash_command=KEDRO_RUN_COMMAND.format(node_tag="calcular_metricas_regresion_node"),
+    )
+
+    calcular_metricas_clasificacion = BashOperator(
+        task_id="calcular_metricas_clasificacion_node",
+        bash_command=KEDRO_RUN_COMMAND.format(node_tag="calcular_metricas_clasificacion_node"),
+    )
+
+    plot_comparacion_metricas_regresion = BashOperator(
+        task_id="plot_comparacion_metricas",
+        bash_command=KEDRO_RUN_COMMAND.format(node_tag="plot_comparacion_metricas"),
+    )
+
+    plot_comparacion_metricas_clasificacion = BashOperator(
+        task_id="plot_comparacion_metricas_clasificacion_node",
+        bash_command=KEDRO_RUN_COMMAND.format(node_tag="plot_comparacion_metricas_clasificacion_node"),
+    )
+
+
+
+# Procesamiento inicial
+procesar_anime >> unir_datasets
+procesar_users >> unir_datasets
+
+# Regresión
+unir_datasets >> preprocesar_anime_dataset_regresion >> entrenar_regresion
+
+# Clasificación
+entrenar_regresion >> preprocesar_anime_dataset_clasificacion >> Entrenar_modelo_clasificacion
+
+# Evaluación
+entrenar_regresion >> calcular_metricas
+Entrenar_modelo_clasificacion >> calcular_metricas_clasificacion
+
+# Visualización
+calcular_metricas >> plot_comparacion_metricas_regresion
+calcular_metricas_clasificacion >> plot_comparacion_metricas_clasificacion
