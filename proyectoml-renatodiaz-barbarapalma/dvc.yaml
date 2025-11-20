@@ -1,0 +1,86 @@
+stages:
+  kedro_full_pipeline:
+    cmd: kedro run
+    
+    # Dependencias (deps)
+    deps:
+      # Datos Crudos (RAW DATASETS)
+      - data/01_raw/anime_filtered.parquet
+      - data/01_raw/users_score.parquet
+      
+      # Código y Configuración
+      - src/
+      - conf/
+      
+    # 3. Salidas (outs)
+    outs:
+      # Datasets Procesados
+      - data/02_intermediate/users_score_processed.parquet
+      - data/02_intermediate/anime_filtered_processed.parquet
+      
+      # Datasets Primarios/Model Input
+      - data/03_primary/final_anime_dataset_raw.parquet
+      - data/05_model_input/final_anime_dataset_regresion.parquet
+      - data/05_model_input/final_anime_dataset_clasificacion.parquet
+      - data/05_model_input/final_anime_dataset_clustering.parquet
+      - data/05_model_input/final_anime_dataset_reduction.parquet
+      - data/05_model_input/final_anime_dataset_anomalydetection.parquet
+      - data/05_model_input/X_test_regresion.parquet
+      - data/05_model_input/y_test_regresion.parquet
+      - data/05_model_input/X_test_clasificacion.parquet
+      - data/05_model_input/y_test_clasificacion.parquet
+      - data/05_model_input/X_scaled_clustering.pkl
+      
+      # Modelos Entrenados
+      - data/06_models/modelo_regresion.pkl
+      - data/06_models/modelos_clasificacion.pkl
+      - data/06_models/modelo_clustering.pkl
+      
+    # 4. Métricas
+    metrics:
+      # Métricas de Regresión
+      - data/08_reporting/metricas_regresion.json
+      - data/08_reporting/regresion/metricas_modelos.json
+      - data/08_reporting/regresion_supervisada/metricas_regresion_supervisada.json
+      
+      # Métricas de Clasificación
+      - data/08_reporting/clasificacion/metricas_modelos.json
+      - data/08_reporting/clasificacion/reportes_completos.json
+      
+      # Métricas de Clustering
+      - data/08_reporting/clustering/metricas_clustering.json
+      
+      # Reportes y Gráficos (Aunque son MatplotlibWriters, DVC puede versionar el archivo .png/.html generado)
+      
+      # Gráficos Regresión
+      - data/08_reporting/regresion/comparacion_metricas.png
+      - data/08_reporting/regresion/LinearRegression_actual_vs_pred.png
+      - data/08_reporting/regresion/LinearRegression_residuos.png
+      - data/08_reporting/regresion/Ridge_actual_vs_pred.png
+      - data/08_reporting/regresion/Ridge_residuos.png
+      - data/08_reporting/regresion/Lasso_actual_vs_pred.png
+      - data/08_reporting/regresion/Lasso_residuos.png
+      - data/08_reporting/regresion/RandomForest_actual_vs_pred.png
+      - data/08_reporting/regresion/RandomForest_residuos.png
+      - data/08_reporting/regresion/GradientBoosting_actual_vs_pred.png
+      - data/08_reporting/regresion/GradientBoosting_residuos.png
+
+      # Gráficos Clasificación
+      - data/08_reporting/clasificacion/comparacion_metricas.png
+      - data/08_reporting/clasificacion/matriz_confusion_LogisticRegression.png
+      - data/08_reporting/clasificacion/matriz_confusion_SGDClassifier.png
+      - data/08_reporting/clasificacion/matriz_confusion_RandomForest.png
+      - data/08_reporting/clasificacion/matriz_confusion_DecisionTree.png
+      - data/08_reporting/clasificacion/matriz_confusion_KNeighborsClassifier.png
+      - data/08_reporting/clasificacion/roc_curve_LogisticRegression.png
+      - data/08_reporting/clasificacion/roc_curve_SGDClassifier.png
+      - data/08_reporting/clasificacion/roc_curve_RandomForest.png
+      - data/08_reporting/clasificacion/roc_curve_DecisionTree.png
+      - data/08_reporting/clasificacion/roc_curve_KNeighborsClassifier.png
+      
+      # Gráficos Clustering y Anomalías
+      - data/08_reporting/clustering/fig_anomalias.png
+      - data/08_reporting/clustering/anomalias_detectadas.parquet
+      - data/08_reporting/clustering/mapa_umap_2d.png
+      - data/08_reporting/clustering/figura_scatter3d.png
+      - data/08_reporting/clustering/mapa_calor_clustering.png
