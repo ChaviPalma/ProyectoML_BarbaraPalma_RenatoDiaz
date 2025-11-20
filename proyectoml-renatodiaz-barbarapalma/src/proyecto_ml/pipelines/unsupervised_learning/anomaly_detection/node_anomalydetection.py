@@ -18,7 +18,7 @@ def detectar_anomalias(df_model: pd.DataFrame, X_scaled, parametros_clustering: 
     cant_anomalias = (df_model['anomaly_iso'] == -1).sum()
     print(f"⚠️ Se detectaron {cant_anomalias} animes anómalos ({cant_anomalias/len(df_model):.2%}).")
 
-    # --- Crear figura MATPLOTLIB (compatible con MatplotlibWriter) ---
+    # Visualización de Anomalías usando UMAP
     fig, ax = plt.subplots(figsize=(10, 7))
     groups = df_model.groupby('tipo_dato')
     colors = {'Normal': '#1f77b4', 'Anomalía': '#d62728'}

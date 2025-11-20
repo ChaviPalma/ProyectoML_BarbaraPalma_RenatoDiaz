@@ -222,3 +222,27 @@ fig_anomalias:
 anomalias_detectadas:
   type: pandas.ParquetDataset
   filepath: data/08_reporting/clustering/anomalias_detectadas.parquet
+
+# --- REPORTING CLUSTERING --- #
+
+figura_scatter2d_html:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/clustering/mapa_umap_2d.png
+
+figura_scatter3d_html:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/clustering/figura_scatter3d.png
+
+metricas_clustering:
+  type: json.JSONDataset
+  filepath: data/08_reporting/clustering/metricas_clustering.json
+
+figura_mapa_calor_clustering:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/clustering/mapa_calor_clustering.png
+
+# -- REPORTE MODELO SUPERVISADO CON CLUSTERING -- #
+
+metricas_regresion_supervisada:
+  type: json.JSONDataset
+  filepath: data/08_reporting/regresion_supervisada/metricas_regresion_supervisada.json
