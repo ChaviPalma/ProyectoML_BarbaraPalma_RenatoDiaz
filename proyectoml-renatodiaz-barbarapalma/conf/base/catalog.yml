@@ -40,7 +40,7 @@ final_anime_dataset_clasificacion:
   filepath: data/05_model_input/final_anime_dataset_clasificacion.parquet
 
 # =========================
-# SALIDAS
+# SALIDAS DE MODELOS Y METRICAS
 # =========================
 modelos_entrenados_regresion:
   type: pickle.PickleDataset
@@ -145,7 +145,7 @@ grafico_comparativo_metricas_clasificacion:
   type: matplotlib.MatplotlibWriter
   filepath: data/08_reporting/clasificacion/comparacion_metricas.png
 
-# --- Salidas del Bucle  ---
+# --- Salidas de Matriz de Confusión (Clasificación) ---
 
 grafico_matriz_confusion_LogisticRegression:
   type: matplotlib.MatplotlibWriter
@@ -189,3 +189,36 @@ grafico_roc_curve_DecisionTree:
 grafico_roc_curve_KNeighborsClassifier:
   type: matplotlib.MatplotlibWriter
   filepath: data/08_reporting/clasificacion/roc_curve_KNeighborsClassifier.png
+
+# --- CLUSTERING --- #
+
+final_anime_dataset_clustering:
+  type: pandas.ParquetDataset
+  filepath: data/05_model_input/final_anime_dataset_clustering.parquet
+
+modelos_entrenados_clustering:
+  type: pickle.PickleDataset
+  filepath: data/06_models/modelo_clustering.pkl
+
+X_scaled_clustering:
+  type: pickle.PickleDataset
+  filepath: data/05_model_input/X_scaled_clustering.pkl
+
+# --- REDUCCIÓN DIMENSIONAL --- #
+
+final_anime_dataset_reduction:
+  type: pandas.ParquetDataset
+  filepath: data/05_model_input/final_anime_dataset_reduction.parquet
+
+# --- DETECCIÓN DE ANOMALÍAS --- #
+final_anime_dataset_anomalydetection:
+  type: pandas.ParquetDataset
+  filepath: data/05_model_input/final_anime_dataset_anomalydetection.parquet
+
+fig_anomalias:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/clustering/fig_anomalias.png
+
+anomalias_detectadas:
+  type: pandas.ParquetDataset
+  filepath: data/08_reporting/clustering/anomalias_detectadas.parquet
