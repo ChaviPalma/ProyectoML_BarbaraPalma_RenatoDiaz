@@ -25,3 +25,12 @@ parametros_modelos_clasificacion:
   RandomForest: "RandomForest"
   DecisionTree: "DecisionTree"
   KNeighborsClassifier: "KNeighborsClassifier"
+
+parametros_clustering:
+  K_FINAL: 2
+  random_state: 42
+  features_cols: ["puntuacion", "miembros", "favoritos", "total_episodios"]
+  scaler: "StandardScaler"
+  n_neighbors: 15
+  min_dist: 0.1
+  contamination: 0.05

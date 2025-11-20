@@ -82,22 +82,40 @@ with DAG(
         bash_command=KEDRO_RUN_COMMAND.format(node_tag="plot_comparacion_metricas_clasificacion_node"),
     )
 
+    clustering = BashOperator(
+        task_id="unsupervised_clustering",
+        bash_command=KEDRO_RUN_COMMAND.format(node_tag="node_entrenamiento_clustering"),
+    )
+
+    reduction = BashOperator(
+        task_id="dimensionality_reduction",
+        bash_command=KEDRO_RUN_COMMAND.format(node_tag="node_reducir_dimensionalidad"),
+    )
+
+    detectar_anomalias = BashOperator(
+        task_id="detectar_anomalias",
+        bash_command=KEDRO_RUN_COMMAND.format(node_tag="node_detectar_anomalias"),
+    )
 
 
-# Procesamiento inicial
-procesar_anime >> unir_datasets
-procesar_users >> unir_datasets
 
-# Regresión
-unir_datasets >> preprocesar_anime_dataset_regresion >> entrenar_regresion
+    # Procesamiento inicial
+    procesar_anime >> unir_datasets
+    procesar_users >> unir_datasets
 
-# Clasificación
-entrenar_regresion >> preprocesar_anime_dataset_clasificacion >> Entrenar_modelo_clasificacion
+    # Regresión
+    unir_datasets >> preprocesar_anime_dataset_regresion >> entrenar_regresion
 
-# Evaluación
-entrenar_regresion >> calcular_metricas
-Entrenar_modelo_clasificacion >> calcular_metricas_clasificacion
+    # Clasificación
+    unir_datasets >> preprocesar_anime_dataset_clasificacion >> Entrenar_modelo_clasificacion
 
-# Visualización
-calcular_metricas >> plot_comparacion_metricas_regresion
-calcular_metricas_clasificacion >> plot_comparacion_metricas_clasificacion
+    # Evaluación
+    entrenar_regresion >> calcular_metricas
+    Entrenar_modelo_clasificacion >> calcular_metricas_clasificacion
+
+    # Unsupervised Learning
+    entrenar_regresion >> clustering >> reduction >> detectar_anomalias
+
+    # Visualización
+    calcular_metricas >> plot_comparacion_metricas_regresion
+    calcular_metricas_clasificacion >> plot_comparacion_metricas_clasificacion
