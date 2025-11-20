@@ -97,6 +97,27 @@ with DAG(
         bash_command=KEDRO_RUN_COMMAND.format(node_tag="node_detectar_anomalias"),
     )
 
+    graficos_clustering = BashOperator(
+        task_id="graficos_clustering_node",
+        bash_command=KEDRO_RUN_COMMAND.format(node_tag="graficos_clustering_node"),
+    )
+
+    evaluacion_modelos_clustering = BashOperator(
+        task_id="evaluacion_modelos_clustering_node",
+        bash_command=KEDRO_RUN_COMMAND.format(node_tag="evaluacion_modelos_clustering_node"),
+    )
+
+    mapa_calor_clustering = BashOperator(
+        task_id="mapa_calor_clustering_node",
+        bash_command=KEDRO_RUN_COMMAND.format(node_tag="mapa_calor_clustering_node"),
+    )
+
+    modelo_regresion_supervisada = BashOperator(
+        task_id="modelo_regresion_supervisada",
+        bash_command=KEDRO_RUN_COMMAND.format(node_tag="node_modelo_regresion_supervisada"),
+    )
+
+
 
 
     # Procesamiento inicial
@@ -119,3 +140,7 @@ with DAG(
     # Visualización
     calcular_metricas >> plot_comparacion_metricas_regresion
     calcular_metricas_clasificacion >> plot_comparacion_metricas_clasificacion
+    clustering >> graficos_clustering >> evaluacion_modelos_clustering >> mapa_calor_clustering
+
+    # Supervised Learning con Regresión
+    reduction >> modelo_regresion_supervisada
