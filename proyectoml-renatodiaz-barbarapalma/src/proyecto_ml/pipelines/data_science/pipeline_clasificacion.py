@@ -16,7 +16,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             node(
                 func=Entrenar_modelo_clasificacion,
                 inputs=["final_anime_dataset_clasificacion", "params:parametros_clasificacion"],
-                outputs=["modelos_entrenados_clasificacion", "X_test_clasificacion", "y_test_clasificacion"],
+                outputs=["modelos_entrenados_clasificacion", "X_test_clasificacion", "y_test_clasificacion" , "scaler_clasificacion", "columnas_de_entrenamiento_clasificacion"],
                 name="node_entrenar_modelo_clasificacion",
             ),
         ]

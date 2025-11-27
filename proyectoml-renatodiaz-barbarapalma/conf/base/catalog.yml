@@ -54,6 +54,22 @@ modelos_entrenados_clasificacion:
   type: pickle.PickleDataset
   filepath: data/06_models/modelos_clasificacion.pkl
 
+scaler_clasificacion:
+  type: pickle.PickleDataset
+  filepath: data/06_models/scaler_clasificacion.pkl
+
+columnas_de_entrenamiento_clasificacion:
+  type: json.JSONDataset
+  filepath: data/06_models/columnas_de_entrenamiento_clasificacion.json
+
+scaler_regresion:
+  type: pickle.PickleDataset
+  filepath: data/06_models/scaler_regresion.pkl
+
+columnas_entrenamiento_regresion:
+  type: json.JSONDataset
+  filepath: data/06_models/columnas_de_entrenamiento_regresion.json
+
 X_test_regresion:
   type: pandas.ParquetDataset
   filepath: data/05_model_input/X_test_regresion.parquet
